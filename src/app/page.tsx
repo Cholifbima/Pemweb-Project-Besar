@@ -68,9 +68,9 @@ export default function Home() {
               <Link href="/boost-services" className="text-gray-300 hover:text-purple-400 transition-colors">Boost Services</Link>
               <Link href="/contact" className="text-gray-300 hover:text-purple-400 transition-colors">Contact</Link>
             </div>
-            <button className="gaming-button px-6 py-2 rounded-lg text-white font-semibold">
+            <Link href="/login" className="gaming-button px-6 py-2 rounded-lg text-white font-semibold inline-block text-center">
               Login
-            </button>
+            </Link>
           </div>
         </div>
       </nav>
@@ -149,9 +149,9 @@ export default function Home() {
           <p className="text-xl text-gray-300 mb-8">
             Bergabunglah dengan ribuan gamer yang sudah mempercayai DoaIbu Store
           </p>
-          <button className="gaming-button px-8 py-4 rounded-lg text-white font-semibold text-lg glow">
+          <Link href="/register" className="gaming-button px-8 py-4 rounded-lg text-white font-semibold text-lg glow inline-block text-center">
             Daftar Sekarang
-          </button>
+          </Link>
         </div>
       </section>
 
