@@ -11,6 +11,19 @@ export interface UserPayload {
   username: string;
 }
 
+export interface LoginResult {
+  success: boolean;
+  token?: string;
+  user?: any;
+  error?: string;
+}
+
+export interface RegisterResult {
+  success: boolean;
+  user?: any;
+  error?: string;
+}
+
 // Hash password
 export async function hashPassword(password: string): Promise<string> {
   const saltRounds = 12;
@@ -52,7 +65,7 @@ export async function registerUser(userData: {
   password: string;
   fullName?: string;
   phoneNumber?: string;
-}) {
+}): Promise<RegisterResult> {
   try {
     // Check if user already exists
     const existingUser = await prisma.user.findFirst({
@@ -99,7 +112,7 @@ export async function registerUser(userData: {
 }
 
 // Login user
-export async function loginUser(emailOrUsername: string, password: string) {
+export async function loginUser(emailOrUsername: string, password: string): Promise<LoginResult> {
   try {
     // Find user by email or username
     const user = await prisma.user.findFirst({

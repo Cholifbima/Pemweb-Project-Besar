@@ -17,9 +17,9 @@ export async function POST(request: NextRequest) {
     // Login user
     const result = await loginUser(emailOrUsername, password);
 
-    if (!result.success) {
+    if (!result.success || !result.token) {
       return NextResponse.json(
-        { error: result.error },
+        { error: result.error || 'Login gagal' },
         { status: 401 }
       );
     }
