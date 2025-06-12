@@ -64,8 +64,8 @@ export default function Home() {
             </div>
             <div className="hidden md:flex space-x-8">
               <Link href="/" className="text-gray-300 hover:text-purple-400 transition-colors">Home</Link>
-              <Link href="/topup" className="text-gray-300 hover:text-purple-400 transition-colors">Top Up</Link>
-              <Link href="/boost" className="text-gray-300 hover:text-purple-400 transition-colors">Boost Services</Link>
+              <Link href="/top-up" className="text-gray-300 hover:text-purple-400 transition-colors">Top Up</Link>
+              <Link href="/boost-services" className="text-gray-300 hover:text-purple-400 transition-colors">Boost Services</Link>
               <Link href="/contact" className="text-gray-300 hover:text-purple-400 transition-colors">Contact</Link>
             </div>
             <button className="gaming-button px-6 py-2 rounded-lg text-white font-semibold">
@@ -87,12 +87,12 @@ export default function Home() {
               Proses cepat, aman, dan harga terjangkau untuk semua kalangan gamer.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="gaming-button px-8 py-4 rounded-lg text-white font-semibold text-lg glow">
+              <Link href="/top-up" className="gaming-button px-8 py-4 rounded-lg text-white font-semibold text-lg glow inline-block text-center">
                 Mulai Top Up
-              </button>
-              <button className="border border-purple-500 text-purple-400 hover:bg-purple-500 hover:text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300">
+              </Link>
+              <Link href="/boost-services" className="border border-purple-500 text-purple-400 hover:bg-purple-500 hover:text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 inline-block text-center">
                 Lihat Services
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -171,9 +171,9 @@ export default function Home() {
             <div>
               <h3 className="text-white font-semibold mb-4">Services</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="/topup" className="hover:text-purple-400 transition-colors">Top Up Games</Link></li>
-                <li><Link href="/boost" className="hover:text-purple-400 transition-colors">Boost Services</Link></li>
-                <li><Link href="/joki" className="hover:text-purple-400 transition-colors">Joki Account</Link></li>
+                <li><Link href="/top-up" className="hover:text-purple-400 transition-colors">Top Up Games</Link></li>
+                <li><Link href="/boost-services" className="hover:text-purple-400 transition-colors">Boost Services</Link></li>
+                <li><Link href="/boost-services" className="hover:text-purple-400 transition-colors">Joki Account</Link></li>
               </ul>
             </div>
             <div>

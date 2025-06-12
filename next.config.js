@@ -7,9 +7,6 @@ const nextConfig = {
     unoptimized: true,
     domains: ['images.unsplash.com', 'via.placeholder.com'],
   },
-  experimental: {
-    appDir: true,
-  },
 }
 
 module.exports = nextConfig 
