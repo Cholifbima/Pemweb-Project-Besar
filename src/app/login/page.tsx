@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -10,7 +11,6 @@ export default function LoginPage() {
     password: '',
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -19,14 +19,14 @@ export default function LoginPage() {
       ...prev,
       [name]: value
     }));
-    // Clear error when user starts typing
-    if (error) setError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+
+    // Show loading toast
+    const loadingToast = toast.loading('Sedang masuk...');
 
     try {
       const response = await fetch('/api/auth/login', {
@@ -43,12 +43,21 @@ export default function LoginPage() {
         throw new Error(data.error || 'Login gagal');
       }
 
-      // Login successful
-      alert('Login berhasil!');
-      router.push('/dashboard'); // Redirect to dashboard
+      // Dismiss loading toast and show success
+      toast.dismiss(loadingToast);
+      toast.success('Login berhasil! Selamat datang kembali 🎮');
+
+      // Small delay to show success message, then redirect
+      setTimeout(() => {
+        router.push('/dashboard');
+        // Force page refresh to ensure auth state is updated
+        window.location.href = '/dashboard';
+      }, 1000);
       
     } catch (error: any) {
-      setError(error.message);
+      // Dismiss loading toast and show error
+      toast.dismiss(loadingToast);
+      toast.error(error.message || 'Terjadi kesalahan saat login');
     } finally {
       setLoading(false);
     }
@@ -70,16 +79,6 @@ export default function LoginPage() {
         {/* Login Form */}
         <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-purple-500/20 p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Error Alert */}
-            {error && (
-              <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4">
-                <div className="flex items-center">
-                  <span className="text-red-400 mr-2">⚠️</span>
-                  <span className="text-red-300 text-sm">{error}</span>
-                </div>
-              </div>
-            )}
-
             {/* Email/Username Field */}
             <div>
               <label htmlFor="emailOrUsername" className="block text-sm font-medium text-gray-300 mb-2">

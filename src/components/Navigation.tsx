@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { GamepadIcon, User, LogOut, Home, Gamepad, Trophy, Phone, Menu, X } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 interface User {
   id: number
@@ -38,11 +39,23 @@ export default function Navigation() {
   }
 
   const handleLogout = async () => {
+    const loadingToast = toast.loading('Sedang logout...')
+    
     try {
       await fetch('/api/auth/logout', { method: 'POST' })
       setUser(null)
-      router.push('/')
+      
+      toast.dismiss(loadingToast)
+      toast.success('Logout berhasil! Sampai jumpa lagi 👋')
+      
+      setTimeout(() => {
+        router.push('/')
+        // Force page refresh to clear auth state
+        window.location.href = '/'
+      }, 1000)
     } catch (error) {
+      toast.dismiss(loadingToast)
+      toast.error('Gagal logout, coba lagi')
       console.error('Error logging out:', error)
     }
   }

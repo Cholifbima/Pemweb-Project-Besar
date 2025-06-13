@@ -4,11 +4,14 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-// Default DATABASE_URL for build time (will be overridden at runtime)
-const DEFAULT_DATABASE_URL = "sqlserver://localhost:1433;database=temp;user=temp;password=temp;encrypt=true;"
-
-// Build DATABASE_URL from Azure SQL variables if available
+// Build DATABASE_URL from environment variables
 function getDatabaseUrl(): string {
+  // For production, use the direct DATABASE_URL if available
+  if (process.env.DATABASE_URL) {
+    return process.env.DATABASE_URL;
+  }
+  
+  // For Azure deployment, build from individual variables
   if (process.env.AZURE_SQL_SERVER && process.env.AZURE_SQL_USERNAME && process.env.AZURE_SQL_PASSWORD && process.env.AZURE_SQL_DATABASE) {
     const server = process.env.AZURE_SQL_SERVER;
     const username = process.env.AZURE_SQL_USERNAME;
@@ -23,8 +26,13 @@ function getDatabaseUrl(): string {
     return `sqlserver://${server}:${port};database=${database};user=${azureUsername};password=${password};encrypt=true;trustServerCertificate=false;connectionTimeout=30;`;
   }
   
-  // Fallback to DATABASE_URL environment variable
-  return process.env.DATABASE_URL || DEFAULT_DATABASE_URL;
+  // Development fallback - use SQLite for local development
+  if (process.env.NODE_ENV === 'development') {
+    return "file:./dev.db";
+  }
+  
+  // Build time fallback
+  return "sqlserver://localhost:1433;database=temp;user=temp;password=temp;encrypt=true;";
 }
 
 function createPrismaClient() {
@@ -45,7 +53,12 @@ let prismaInstance: PrismaClient | undefined
 // Only initialize Prisma in runtime, not during build
 if (typeof window === 'undefined') {
   if (process.env.NODE_ENV === 'production') {
-    prismaInstance = createPrismaClient()
+    try {
+      prismaInstance = createPrismaClient()
+    } catch (error) {
+      console.error('Failed to initialize Prisma client:', error)
+      // Don't throw error during build, just log it
+    }
   } else {
     if (!globalForPrisma.prisma) {
       globalForPrisma.prisma = createPrismaClient()

@@ -3,19 +3,18 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
     email: '',
     username: '',
-    password: '',
-    confirmPassword: '',
     fullName: '',
     phoneNumber: '',
+    password: '',
+    confirmPassword: '',
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const router = useRouter();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -24,27 +23,24 @@ export default function RegisterPage() {
       ...prev,
       [name]: value
     }));
-    // Clear error when user starts typing
-    if (error) setError('');
-    if (success) setSuccess('');
   };
 
   const validateForm = () => {
     if (formData.password !== formData.confirmPassword) {
-      setError('Password dan konfirmasi password tidak sama');
+      toast.error('Password dan konfirmasi password tidak sama');
       return false;
     }
     if (formData.password.length < 6) {
-      setError('Password minimal 6 karakter');
+      toast.error('Password minimal 6 karakter');
       return false;
     }
     if (formData.username.length < 3) {
-      setError('Username minimal 3 karakter');
+      toast.error('Username minimal 3 karakter');
       return false;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      setError('Format email tidak valid');
+      toast.error('Format email tidak valid');
       return false;
     }
     return true;
@@ -53,13 +49,14 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-    setSuccess('');
 
     if (!validateForm()) {
       setLoading(false);
       return;
     }
+
+    // Show loading toast
+    const loadingToast = toast.loading('Sedang membuat akun...');
 
     try {
       const response = await fetch('/api/auth/register', {
@@ -82,14 +79,21 @@ export default function RegisterPage() {
         throw new Error(data.error || 'Registrasi gagal');
       }
 
-      // Registration successful
-      setSuccess('Registrasi berhasil! Saldo demo Rp 1.000.000 telah ditambahkan ke akun Anda.');
+      // Dismiss loading toast and show success
+      toast.dismiss(loadingToast);
+      toast.success('🎉 Registrasi berhasil! Saldo demo Rp 1.000.000 telah ditambahkan ke akun Anda');
+
+      // Small delay to show success message, then redirect
       setTimeout(() => {
         router.push('/dashboard');
+        // Force page refresh to ensure auth state is updated
+        window.location.href = '/dashboard';
       }, 2000);
       
     } catch (error: any) {
-      setError(error.message);
+      // Dismiss loading toast and show error
+      toast.dismiss(loadingToast);
+      toast.error(error.message || 'Terjadi kesalahan saat registrasi');
     } finally {
       setLoading(false);
     }
@@ -111,26 +115,6 @@ export default function RegisterPage() {
         {/* Register Form */}
         <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-purple-500/20 p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Error Alert */}
-            {error && (
-              <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4">
-                <div className="flex items-center">
-                  <span className="text-red-400 mr-2">⚠️</span>
-                  <span className="text-red-300 text-sm">{error}</span>
-                </div>
-              </div>
-            )}
-
-            {/* Success Alert */}
-            {success && (
-              <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-4">
-                <div className="flex items-center">
-                  <span className="text-green-400 mr-2">✅</span>
-                  <span className="text-green-300 text-sm">{success}</span>
-                </div>
-              </div>
-            )}
-
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
@@ -270,7 +254,7 @@ export default function RegisterPage() {
                 href="/login" 
                 className="text-purple-400 hover:text-purple-300 font-medium transition-colors"
               >
-                Masuk di Sini
+                Masuk Sekarang
               </Link>
             </p>
           </div>
