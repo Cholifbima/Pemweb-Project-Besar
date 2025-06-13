@@ -63,7 +63,8 @@ async function main() {
       fullName: 'Test User DoaIbu Store',
       phoneNumber: '+62812345678',
       favoriteGames: JSON.stringify(['mobile-legends', 'valorant']),
-      totalSpent: 0
+      totalSpent: 0,
+      balance: 1000000 // 1 juta rupiah untuk demo
     }
   })
 

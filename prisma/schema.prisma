@@ -26,6 +26,7 @@ model User {
   // Gaming related fields
   favoriteGames String?  // Store as JSON string
   totalSpent    Float    @default(0)
+  balance       Float    @default(1000000) // Demo balance 1 juta rupiah
   
   // Relations
   orders      Order[]

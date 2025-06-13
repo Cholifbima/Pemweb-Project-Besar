@@ -45,7 +45,7 @@ export default function LoginPage() {
 
       // Login successful
       alert('Login berhasil!');
-      router.push('/'); // Redirect to homepage
+      router.push('/dashboard'); // Redirect to dashboard
       
     } catch (error: any) {
       setError(error.message);

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { registerUser } from '@/lib/auth';
+import { registerUser, generateToken } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,13 +55,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(
+    // Generate JWT token for auto-login
+    const token = generateToken({
+      id: result.user!.id,
+      email: result.user!.email,
+      username: result.user!.username,
+    });
+
+    // Create response with user data
+    const response = NextResponse.json(
       { 
-        message: 'Registrasi berhasil!',
+        message: 'Registrasi berhasil! Saldo demo Rp 1.000.000 telah ditambahkan ke akun Anda.',
         user: result.user 
       },
       { status: 201 }
     );
+
+    // Set HTTP-only cookie for authentication
+    response.cookies.set('auth-token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    });
+
+    return response;
 
   } catch (error: any) {
     console.error('Registration error:', error);

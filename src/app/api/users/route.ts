@@ -62,7 +62,8 @@ export async function POST(request: NextRequest) {
         username,
         password: hashedPassword,
         fullName,
-        phoneNumber
+        phoneNumber,
+        balance: 1000000 // 1 juta rupiah untuk demo
       },
       select: {
         id: true,
@@ -70,6 +71,7 @@ export async function POST(request: NextRequest) {
         username: true,
         fullName: true,
         phoneNumber: true,
+        balance: true,
         createdAt: true
       }
     })

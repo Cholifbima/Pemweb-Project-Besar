@@ -91,26 +91,7 @@ export default function BoostServicesPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-black/30 backdrop-blur-md border-b border-purple-500/20">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center space-x-2">
-              <span className="text-2xl">🎮</span>
-              <span className="text-xl font-bold text-white">DoaIbu Store</span>
-            </Link>
-            <nav className="hidden md:flex items-center space-x-6">
-              <Link href="/" className="text-gray-300 hover:text-white transition-colors">Home</Link>
-              <Link href="/top-up" className="text-gray-300 hover:text-white transition-colors">Top Up</Link>
-              <Link href="/boost-services" className="text-purple-400 font-semibold">Boost Services</Link>
-              <Link href="/contact" className="text-gray-300 hover:text-white transition-colors">Contact</Link>
-            </nav>
-            <button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105">
-              Login
-            </button>
-          </div>
-        </div>
-      </header>
+
 
       {/* Hero Section */}
       <section className="py-20">

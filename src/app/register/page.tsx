@@ -83,9 +83,9 @@ export default function RegisterPage() {
       }
 
       // Registration successful
-      setSuccess('Registrasi berhasil! Silakan login dengan akun baru Anda.');
+      setSuccess('Registrasi berhasil! Saldo demo Rp 1.000.000 telah ditambahkan ke akun Anda.');
       setTimeout(() => {
-        router.push('/login');
+        router.push('/dashboard');
       }, 2000);
       
     } catch (error: any) {

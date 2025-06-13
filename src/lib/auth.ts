@@ -89,11 +89,12 @@ export async function registerUser(userData: {
     // Hash password
     const hashedPassword = await hashPassword(userData.password);
 
-    // Create user
+    // Create user with 1 million balance for demo
     const user = await prisma.user.create({
       data: {
         ...userData,
         password: hashedPassword,
+        balance: 1000000, // 1 juta rupiah untuk demo
       },
       select: {
         id: true,
@@ -101,6 +102,7 @@ export async function registerUser(userData: {
         username: true,
         fullName: true,
         phoneNumber: true,
+        balance: true,
         createdAt: true,
       }
     });
@@ -150,6 +152,7 @@ export async function loginUser(emailOrUsername: string, password: string): Prom
         username: user.username,
         fullName: user.fullName,
         phoneNumber: user.phoneNumber,
+        balance: user.balance,
       }
     };
   } catch (error: any) {
@@ -175,6 +178,7 @@ export async function getUserFromToken(token: string) {
         phoneNumber: true,
         favoriteGames: true,
         totalSpent: true,
+        balance: true,
         createdAt: true,
       }
     });
