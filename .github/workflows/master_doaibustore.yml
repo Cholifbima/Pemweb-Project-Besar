@@ -32,7 +32,8 @@ jobs:
           NEXTAUTH_URL: "https://doaibustore.site"
           NODE_ENV: "production"
         run: |
-          npm install
+          npm ci
+          npm install --save-dev @types/react @types/node
           npm run build
           
           # Verify build output
