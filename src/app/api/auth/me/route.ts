@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromToken } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
+    // Skip database operations during build
+    if (process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL) {
+      return NextResponse.json(
+        { error: 'Database not configured' },
+        { status: 503 }
+      );
+    }
+
+    // Dynamic import to avoid build-time issues
+    const { getUserFromToken } = await import('@/lib/auth');
+
     // Get token from cookie
     const token = request.cookies.get('auth-token')?.value;
 
