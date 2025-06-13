@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm install --save-dev @types/react @types/node && prisma generate && next build",
+    "build": "prisma generate && next build",
     "start": "node_modules/next/dist/bin/next start",
     "lint": "next lint",
     "db:generate": "prisma generate",
@@ -15,6 +15,9 @@
   },
   "dependencies": {
     "@prisma/client": "^6.9.0",
+    "@types/node": "^20.19.0",
+    "@types/react": "^18.3.23",
+    "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",
     "bcryptjs": "^3.0.2",
     "clsx": "^2.1.1",
@@ -33,9 +36,6 @@
     "typescript": "^5"
   },
   "devDependencies": {
-    "@types/jsonwebtoken": "^9.0.9",
-    "@types/node": "^20.19.0",
-    "@types/react": "^18.3.23",
-    "@types/react-dom": "^18"
+    "@types/jsonwebtoken": "^9.0.9"
   }
 }

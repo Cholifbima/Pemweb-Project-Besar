@@ -15,14 +15,6 @@
       "static/css/bf4e7c28cd27dfc8.css",
       "static/chunks/app/layout-325f312340b97ddd.js"
     ],
-    "/login/page": [
-      "static/chunks/webpack-365fe83a4310541d.js",
-      "static/chunks/fd9d1056-be48aeae6e94b8d1.js",
-      "static/chunks/23-60fece4b50a68a94.js",
-      "static/chunks/main-app-4267850e1121b795.js",
-      "static/chunks/231-b6d2ac2bdc1b169f.js",
-      "static/chunks/app/login/page-2e92ae2d37dbbf97.js"
-    ],
     "/boost-services/page": [
       "static/chunks/webpack-365fe83a4310541d.js",
       "static/chunks/fd9d1056-be48aeae6e94b8d1.js",
@@ -38,6 +30,14 @@
       "static/chunks/main-app-4267850e1121b795.js",
       "static/chunks/231-b6d2ac2bdc1b169f.js",
       "static/chunks/app/contact/page-f9015e795400152b.js"
+    ],
+    "/login/page": [
+      "static/chunks/webpack-365fe83a4310541d.js",
+      "static/chunks/fd9d1056-be48aeae6e94b8d1.js",
+      "static/chunks/23-60fece4b50a68a94.js",
+      "static/chunks/main-app-4267850e1121b795.js",
+      "static/chunks/231-b6d2ac2bdc1b169f.js",
+      "static/chunks/app/login/page-2e92ae2d37dbbf97.js"
     ],
     "/page": [
       "static/chunks/webpack-365fe83a4310541d.js",
