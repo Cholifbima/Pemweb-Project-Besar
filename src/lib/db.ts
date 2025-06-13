@@ -6,7 +6,7 @@ const globalForPrisma = globalThis as unknown as {
 
 // Build DATABASE_URL from environment variables
 function getDatabaseUrl(): string {
-  // Log environment untuk debugging
+  // Log environment untuk debugging (hanya di server)
   if (typeof window === 'undefined') {
     console.log('🔍 Database Environment Check:', {
       NODE_ENV: process.env.NODE_ENV,
@@ -18,19 +18,13 @@ function getDatabaseUrl(): string {
     });
   }
 
-  // Priority 1: Production dengan DATABASE_URL langsung
-  if (process.env.NODE_ENV === 'production' && process.env.DATABASE_URL) {
-    console.log('✅ Using production DATABASE_URL');
-    return process.env.DATABASE_URL;
-  }
-  
-  // Priority 2: Local development dengan SQLite
+  // Priority 1: Local development dengan SQLite
   if (process.env.NODE_ENV === 'development') {
     console.log('🔧 Using development SQLite database');
     return "file:./dev.db";
   }
   
-  // Priority 3: Azure deployment dengan individual variables
+  // Priority 2: Azure deployment dengan individual variables (UTAMA)
   if (process.env.AZURE_SQL_SERVER && process.env.AZURE_SQL_USERNAME && process.env.AZURE_SQL_PASSWORD && process.env.AZURE_SQL_DATABASE) {
     const server = process.env.AZURE_SQL_SERVER;
     const username = process.env.AZURE_SQL_USERNAME;
@@ -51,15 +45,15 @@ function getDatabaseUrl(): string {
     
     return connectionString;
   }
-  
-  // Priority 4: Fallback ke DATABASE_URL jika ada
+
+  // Priority 3: Fallback ke DATABASE_URL jika ada
   if (process.env.DATABASE_URL) {
-    console.log('🔄 Using fallback DATABASE_URL');
+    console.log('✅ Using DATABASE_URL from environment');
     return process.env.DATABASE_URL;
   }
   
-  // Priority 5: Build-time fallback (tidak akan digunakan di runtime)
-  console.log('⚠️ Using build-time fallback - this should not happen in production');
+  // Priority 4: Build-time fallback (tidak akan digunakan di runtime)
+  console.log('⚠️ Using build-time fallback - this should not happen');
   return "sqlserver://localhost:1433;database=temp;user=temp;password=temp;encrypt=true;";
 }
 
