@@ -6,17 +6,31 @@ const globalForPrisma = globalThis as unknown as {
 
 // Build DATABASE_URL from environment variables
 function getDatabaseUrl(): string {
-  // For production deployment, always use the production DATABASE_URL
+  // Log environment untuk debugging
+  if (typeof window === 'undefined') {
+    console.log('🔍 Database Environment Check:', {
+      NODE_ENV: process.env.NODE_ENV,
+      hasDATA_URL: !!process.env.DATABASE_URL,
+      hasAzureServer: !!process.env.AZURE_SQL_SERVER,
+      hasAzureUsername: !!process.env.AZURE_SQL_USERNAME,
+      hasAzurePassword: !!process.env.AZURE_SQL_PASSWORD,
+      hasAzureDatabase: !!process.env.AZURE_SQL_DATABASE,
+    });
+  }
+
+  // Priority 1: Production dengan DATABASE_URL langsung
   if (process.env.NODE_ENV === 'production' && process.env.DATABASE_URL) {
+    console.log('✅ Using production DATABASE_URL');
     return process.env.DATABASE_URL;
   }
   
-  // For local development, use SQLite
+  // Priority 2: Local development dengan SQLite
   if (process.env.NODE_ENV === 'development') {
+    console.log('🔧 Using development SQLite database');
     return "file:./dev.db";
   }
   
-  // For Azure deployment, build from individual variables
+  // Priority 3: Azure deployment dengan individual variables
   if (process.env.AZURE_SQL_SERVER && process.env.AZURE_SQL_USERNAME && process.env.AZURE_SQL_PASSWORD && process.env.AZURE_SQL_DATABASE) {
     const server = process.env.AZURE_SQL_SERVER;
     const username = process.env.AZURE_SQL_USERNAME;
@@ -24,19 +38,28 @@ function getDatabaseUrl(): string {
     const database = process.env.AZURE_SQL_DATABASE;
     const port = process.env.AZURE_SQL_PORT || '1433';
     
-    // Format username for Azure SQL Database (username@server)
-    const serverName = server.split('.')[0]; // Extract server name from FQDN
-    const azureUsername = `${username}@${serverName}`;
+    // Format username untuk Azure SQL Database
+    const serverName = server.includes('.') ? server.split('.')[0] : server;
+    const azureUsername = username.includes('@') ? username : `${username}@${serverName}`;
     
-    return `sqlserver://${server}:${port};database=${database};user=${azureUsername};password=${password};encrypt=true;trustServerCertificate=false;connectionTimeout=30;`;
+    const connectionString = `sqlserver://${server}:${port};database=${database};user=${azureUsername};password=${password};encrypt=true;trustServerCertificate=false;connectionTimeout=30;`;
+    
+    console.log('🔗 Using Azure SQL connection (built from env vars)');
+    console.log('Server:', server);
+    console.log('Database:', database);
+    console.log('Username:', azureUsername);
+    
+    return connectionString;
   }
   
-  // Fallback to DATABASE_URL environment variable
+  // Priority 4: Fallback ke DATABASE_URL jika ada
   if (process.env.DATABASE_URL) {
+    console.log('🔄 Using fallback DATABASE_URL');
     return process.env.DATABASE_URL;
   }
   
-  // Build time fallback
+  // Priority 5: Build-time fallback (tidak akan digunakan di runtime)
+  console.log('⚠️ Using build-time fallback - this should not happen in production');
   return "sqlserver://localhost:1433;database=temp;user=temp;password=temp;encrypt=true;";
 }
 
@@ -55,20 +78,25 @@ function createPrismaClient() {
 
 let prismaInstance: PrismaClient | undefined
 
-// Only initialize Prisma in runtime, not during build
+// Hanya initialize Prisma di runtime, bukan saat build
 if (typeof window === 'undefined') {
-  if (process.env.NODE_ENV === 'production') {
-    try {
+  try {
+    if (process.env.NODE_ENV === 'production') {
       prismaInstance = createPrismaClient()
-    } catch (error) {
-      console.error('Failed to initialize Prisma client:', error)
-      // Don't throw error during build, just log it
+      console.log('✅ Prisma client initialized for production');
+    } else {
+      if (!globalForPrisma.prisma) {
+        globalForPrisma.prisma = createPrismaClient()
+        console.log('🔧 Prisma client initialized for development');
+      }
+      prismaInstance = globalForPrisma.prisma
     }
-  } else {
-    if (!globalForPrisma.prisma) {
-      globalForPrisma.prisma = createPrismaClient()
+  } catch (error) {
+    console.error('❌ Failed to initialize Prisma client:', error);
+    // Jangan throw error saat build, hanya log
+    if (process.env.NODE_ENV !== 'production') {
+      throw error;
     }
-    prismaInstance = globalForPrisma.prisma
   }
 }
 
