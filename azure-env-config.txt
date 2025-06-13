@@ -1,0 +1,19 @@
+# Azure App Service Environment Variables Configuration
+# Copy these settings to Azure Portal -> App Service -> Configuration -> Application Settings
+
+DATABASE_URL=sqlserver://doaibustore-sv.database.windows.net:1433;database=doaibustore-db;user=doaibustore-sv-admin@doaibustore-sv;password=gg7$5oEu7vkI90;encrypt=true;trustServerCertificate=false;connectionTimeout=30;
+
+JWT_SECRET=doaibu-store-jwt-secret-key-2024-very-secure-random-string
+
+NEXTAUTH_SECRET=doaibu-store-nextauth-secret-2024-random-key
+
+NEXTAUTH_URL=https://doaibustore.site
+
+NODE_ENV=production
+
+PORT=8080
+
+WEBSITE_NODE_DEFAULT_VERSION=22.x
+
+# Prisma configuration
+PRISMA_CLI_BINARY_TARGETS=native,linux-musl 
