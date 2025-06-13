@@ -1,0 +1,34 @@
+# SYSTEMATIC DEBUGGING - AZURE SQL DATABASE CONNECTION
+# Error: Authentication failed for 'doaibuadmin'
+
+# DARI SCREENSHOT ANALYSIS:
+# Server: doaibustore-sv.database.windows.net 
+# Database: doaibustore-db
+# Username: doaibuadmin
+# Password: gg7$5oEu7vkI90
+
+# TEST CONNECTION STRINGS (Copy ke Azure App Service satu per satu):
+
+# FORMAT 1: Standard Azure SQL Database format
+sqlserver://doaibustore-sv.database.windows.net:1433;database=doaibustore-db;user=doaibuadmin@doaibustore-sv;password=gg7$5oEu7vkI90;encrypt=true;trustServerCertificate=false;connectionTimeout=30;
+
+# FORMAT 2: Tanpa @server suffix  
+sqlserver://doaibustore-sv.database.windows.net:1433;database=doaibustore-db;user=doaibuadmin;password=gg7$5oEu7vkI90;encrypt=true;trustServerCertificate=false;connectionTimeout=30;
+
+# FORMAT 3: Alternative server name (dari ODBC screenshot sebelumnya)
+sqlserver://doaibustore-server.database.windows.net:1433;database=doaibustore-db;user=doaibuadmin@doaibustore-server;password=gg7$5oEu7vkI90;encrypt=true;trustServerCertificate=false;connectionTimeout=30;
+
+# FORMAT 4: With TrustServerCertificate=true (bypass SSL issues)
+sqlserver://doaibustore-sv.database.windows.net:1433;database=doaibustore-db;user=doaibuadmin@doaibustore-sv;password=gg7$5oEu7vkI90;encrypt=true;trustServerCertificate=true;connectionTimeout=30;
+
+# TESTING PLAN:
+# 1. Test FORMAT 1 di Azure App Service
+# 2. Restart App Service
+# 3. Coba login di website  
+# 4. Jika gagal, coba FORMAT 2, dst.
+
+# KEMUNGKINAN MASALAH LAIN:
+# - Firewall block Azure App Service IP
+# - Password changed/expired
+# - Server name mismatch
+# - SSL certificate issues 
