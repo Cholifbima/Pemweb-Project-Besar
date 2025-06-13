@@ -6,9 +6,14 @@ const globalForPrisma = globalThis as unknown as {
 
 // Build DATABASE_URL from environment variables
 function getDatabaseUrl(): string {
-  // For production, use the direct DATABASE_URL if available
-  if (process.env.DATABASE_URL) {
+  // For production deployment, always use the production DATABASE_URL
+  if (process.env.NODE_ENV === 'production' && process.env.DATABASE_URL) {
     return process.env.DATABASE_URL;
+  }
+  
+  // For local development, use SQLite
+  if (process.env.NODE_ENV === 'development') {
+    return "file:./dev.db";
   }
   
   // For Azure deployment, build from individual variables
@@ -26,9 +31,9 @@ function getDatabaseUrl(): string {
     return `sqlserver://${server}:${port};database=${database};user=${azureUsername};password=${password};encrypt=true;trustServerCertificate=false;connectionTimeout=30;`;
   }
   
-  // Development fallback - use SQLite for local development
-  if (process.env.NODE_ENV === 'development') {
-    return "file:./dev.db";
+  // Fallback to DATABASE_URL environment variable
+  if (process.env.DATABASE_URL) {
+    return process.env.DATABASE_URL;
   }
   
   // Build time fallback
