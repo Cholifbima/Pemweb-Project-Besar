@@ -14,13 +14,6 @@ if (typeof window === 'undefined') {
       db: {
         url: process.env.DATABASE_URL
       }
-    },
-    // Configure for Azure SQL Server
-    __internal: {
-      engine: {
-        connectionTimeout: 20000,
-        requestTimeout: 20000,
-      }
     }
   })
 
