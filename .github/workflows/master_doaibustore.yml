@@ -28,9 +28,21 @@ jobs:
         run: |
           npm install
           npm run build
+          
+          # Verify build output
+          ls -la .next || echo ".next folder not created"
+          
+          # List build output
+          echo "Build completed. Checking output:"
+          ls -la
 
       - name: Zip artifact for deployment
-        run: zip -r release.zip .next static public package.json server.js web.config node_modules prisma src
+        run: |
+          # Remove node_modules to avoid size issues
+          rm -rf node_modules
+          
+          # Create zip with essential files only
+          zip -r release.zip . -x "*.git*" "node_modules/*" ".env*" "*.log" "coverage/*" ".nyc_output/*"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -70,5 +82,5 @@ jobs:
         with:
           app-name: 'doaibustore'
           slot-name: 'Production'
-          package: .
+          package: release.zip
           
