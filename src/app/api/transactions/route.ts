@@ -69,23 +69,50 @@ export async function POST(request: NextRequest) {
     console.log('🆔 Generated transaction ID:', transactionId)
 
     console.log('🔄 Creating transaction record...')
-    // Create transaction record
-    const transaction = await prisma.transaction.create({
-      data: {
+    // Create transaction record using raw SQL to handle potential table issues
+    let transaction
+    try {
+      transaction = await prisma.transaction.create({
+        data: {
+          id: transactionId,
+          userId: user.id,
+          type: type, // 'topup' or 'boost'
+          gameId: gameId,
+          itemId: itemId || null,
+          serviceId: serviceId || null,
+          amount: amount,
+          userGameId: userGameId,
+          email: email,
+          status: 'completed', // Demo: auto complete
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }
+      })
+    } catch (createError: any) {
+      console.log('⚠️ Prisma create failed, trying raw SQL:', createError.message)
+      
+      // Fallback to raw SQL if Prisma model fails
+      await prisma.$executeRaw`
+        INSERT INTO transactions (id, userId, type, gameId, itemId, serviceId, amount, userGameId, email, status, createdAt, updatedAt)
+        VALUES (${transactionId}, ${user.id}, ${type}, ${gameId}, ${itemId || null}, ${serviceId || null}, ${amount}, ${userGameId}, ${email}, 'completed', GETDATE(), GETDATE())
+      `
+      
+      // Create a mock transaction object for response
+      transaction = {
         id: transactionId,
         userId: user.id,
-        type: type, // 'topup' or 'boost'
+        type: type,
         gameId: gameId,
         itemId: itemId || null,
         serviceId: serviceId || null,
         amount: amount,
         userGameId: userGameId,
         email: email,
-        status: 'completed', // Demo: auto complete
+        status: 'completed',
         createdAt: new Date(),
         updatedAt: new Date(),
       }
-    })
+    }
 
     console.log('✅ Transaction created:', transaction.id)
 
@@ -165,9 +192,18 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    if (error.message?.includes('connect')) {
+    if (error.message?.includes('connect') || error.message?.includes('ECONNREFUSED')) {
       return NextResponse.json(
-        { error: 'Tidak dapat terhubung ke database' },
+        { error: 'Tidak dapat terhubung ke database. Silakan coba lagi.' },
+        { status: 503 }
+      )
+    }
+    
+    if (error.message?.includes('Invalid `prisma.transaction.create()` invocation') || 
+        error.message?.includes('Unknown field') ||
+        error.message?.includes('Cannot read properties of undefined')) {
+      return NextResponse.json(
+        { error: 'Tabel database belum siap. Silakan hubungi administrator.' },
         { status: 503 }
       )
     }
