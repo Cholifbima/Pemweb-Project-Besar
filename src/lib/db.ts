@@ -26,15 +26,35 @@ function getDatabaseUrl(): string {
     const database = process.env.AZURE_SQL_DATABASE;
     const port = process.env.AZURE_SQL_PORT || '1433';
     
-    // Format connection string untuk Azure SQL Database dengan proper encoding
-    const connectionString = `sqlserver://${server}:${port};database=${database};user=${encodeURIComponent(username)};password=${encodeURIComponent(password)};encrypt=true;trustServerCertificate=false;connectionTimeout=30;loginTimeout=30;`;
+    // Debug: Log all values to see what we're working with
+    console.log('🔍 Azure SQL Environment Values:');
+    console.log('- Server:', server);
+    console.log('- Username:', username);
+    console.log('- Database:', database);
+    console.log('- Port:', port);
+    console.log('- Password length:', password?.length || 0);
+    
+    // Format connection string untuk Azure SQL Database - try different formats
+    // Try the format that works with Azure SQL Database
+    let connectionString;
+    
+    // Format 1: Try with server@username format (common for Azure SQL)
+    if (username.includes('@')) {
+      connectionString = `sqlserver://${server}:${port};database=${database};user=${username};password=${password};encrypt=true;trustServerCertificate=false;connectionTimeout=30;loginTimeout=30;requestTimeout=30;`;
+    } else {
+      // Format 2: Add server name to username (Azure SQL Database format)
+      const serverName = server.split('.')[0]; // Extract server name from FQDN
+      const azureUsername = `${username}@${serverName}`;
+      connectionString = `sqlserver://${server}:${port};database=${database};user=${azureUsername};password=${password};encrypt=true;trustServerCertificate=false;connectionTimeout=30;loginTimeout=30;requestTimeout=30;`;
+      console.log('🔧 Using Azure SQL format with username:', azureUsername);
+    }
     
     console.log('🔗 Using Azure SQL connection (built from env vars)');
     console.log('Server:', server);
     console.log('Database:', database);
     console.log('Username:', username);
     console.log('Port:', port);
-    console.log('Connection String (masked):', connectionString.replace(encodeURIComponent(password), '***'));
+    console.log('Connection String (masked):', connectionString.replace(password, '***'));
     
     return connectionString;
   }
