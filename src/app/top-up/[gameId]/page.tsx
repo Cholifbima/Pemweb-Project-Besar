@@ -54,7 +54,11 @@ export default function GameTopUpPage() {
   }
 
   const handlePurchase = async () => {
-    if (!selectedItem) return
+    console.log('Purchase button clicked!') // Debug log
+    if (!selectedItem) {
+      console.log('No item selected')
+      return
+    }
 
     setLoading(true)
     showToast.loading('Memproses pembelian...')
@@ -130,6 +134,7 @@ export default function GameTopUpPage() {
   }
 
   const handleNextStep = () => {
+    console.log('Next step button clicked, current step:', step) // Debug log
     if (step === 1 && !selectedItem) {
       showToast.error('Pilih paket top up terlebih dahulu')
       return
@@ -137,6 +142,7 @@ export default function GameTopUpPage() {
     if (step === 2 && !validateForm()) {
       return
     }
+    console.log('Moving to step:', step + 1) // Debug log
     setStep(step + 1)
   }
 

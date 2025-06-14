@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { User, Wallet, Trophy, ShoppingBag, Star, Clock, CheckCircle, AlertCircle, CreditCard, GamepadIcon, Crown, Plus, History } from 'lucide-react'
+import { User, Wallet, ShoppingBag, History, Star, GamepadIcon, Crown, Plus, CreditCard, CheckCircle, Clock, XCircle, AlertCircle } from 'lucide-react'
+import { showToast } from '@/lib/toast'
 
 interface UserData {
   id: number
@@ -129,31 +130,25 @@ export default function DashboardPage() {
   }
 
   const handleAddBalance = async () => {
-    if (!user) return
+    console.log('Add balance button clicked!') // Debug log
+    if (!user) {
+      console.log('No user found')
+      return
+    }
     
     try {
       // Demo: Add 100,000 IDR to balance
       const newBalance = user.balance + 100000
       setUser({ ...user, balance: newBalance })
       
-      // Show success message
-      const event = new CustomEvent('showToast', {
-        detail: {
-          type: 'success',
-          message: `💰 Saldo berhasil ditambah ${formatCurrency(100000)}! Saldo baru: ${formatCurrency(newBalance)}`
-        }
-      })
-      window.dispatchEvent(event)
+      console.log('Balance updated:', newBalance) // Debug log
+      
+      // Show success message using showToast directly
+      showToast.success(`💰 Saldo berhasil ditambah ${formatCurrency(100000)}! Saldo baru: ${formatCurrency(newBalance)}`)
       
     } catch (error) {
       console.error('Error adding balance:', error)
-      const event = new CustomEvent('showToast', {
-        detail: {
-          type: 'error',
-          message: 'Gagal menambah saldo'
-        }
-      })
-      window.dispatchEvent(event)
+      showToast.error('Gagal menambah saldo')
     }
   }
 

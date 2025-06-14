@@ -3,31 +3,6 @@ import toast from 'react-hot-toast'
 // Track active toasts to prevent spam
 let activeToasts = new Set<string>()
 
-// Auto-dismiss all toasts when navigating (for Next.js)
-if (typeof window !== 'undefined') {
-  // Listen for route changes
-  const originalPushState = window.history.pushState
-  const originalReplaceState = window.history.replaceState
-  
-  window.history.pushState = function(...args) {
-    toast.dismiss()
-    activeToasts.clear()
-    return originalPushState.apply(this, args)
-  }
-  
-  window.history.replaceState = function(...args) {
-    toast.dismiss()
-    activeToasts.clear()
-    return originalReplaceState.apply(this, args)
-  }
-  
-  // Also listen for popstate (back/forward buttons)
-  window.addEventListener('popstate', () => {
-    toast.dismiss()
-    activeToasts.clear()
-  })
-}
-
 // Custom toast component with close button
 const ToastWithClose = ({ 
   message, 
@@ -100,10 +75,11 @@ const ToastWithClose = ({
 // Anti-spam toast functions
 export const showToast = {
   success: (message: string) => {
-    toast.dismiss()
-    activeToasts.clear()
-    
-    if (activeToasts.has(message)) return
+    // Clear any existing toasts of the same message
+    if (activeToasts.has(message)) {
+      toast.dismiss(message)
+      activeToasts.delete(message)
+    }
     
     activeToasts.add(message)
     const toastId = toast.success(
@@ -116,16 +92,17 @@ export const showToast = {
     
     setTimeout(() => {
       activeToasts.delete(message)
-    }, 2000)
+    }, 2500)
     
     return toastId
   },
 
   error: (message: string) => {
-    toast.dismiss()
-    activeToasts.clear()
-    
-    if (activeToasts.has(message)) return
+    // Clear any existing toasts of the same message
+    if (activeToasts.has(message)) {
+      toast.dismiss(message)
+      activeToasts.delete(message)
+    }
     
     activeToasts.add(message)
     const toastId = toast.error(
@@ -138,16 +115,17 @@ export const showToast = {
     
     setTimeout(() => {
       activeToasts.delete(message)
-    }, 3000)
+    }, 3500)
     
     return toastId
   },
 
   loading: (message: string) => {
-    toast.dismiss()
-    activeToasts.clear()
-    
-    if (activeToasts.has(message)) return
+    // Clear any existing toasts of the same message
+    if (activeToasts.has(message)) {
+      toast.dismiss(message)
+      activeToasts.delete(message)
+    }
     
     activeToasts.add(message)
     const toastId = toast.loading(
@@ -161,10 +139,11 @@ export const showToast = {
   },
 
   default: (message: string) => {
-    toast.dismiss()
-    activeToasts.clear()
-    
-    if (activeToasts.has(message)) return
+    // Clear any existing toasts of the same message
+    if (activeToasts.has(message)) {
+      toast.dismiss(message)
+      activeToasts.delete(message)
+    }
     
     activeToasts.add(message)
     const toastId = toast(
@@ -177,7 +156,7 @@ export const showToast = {
     
     setTimeout(() => {
       activeToasts.delete(message)
-    }, 2500)
+    }, 3000)
     
     return toastId
   },
