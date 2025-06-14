@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserFromToken } from '@/lib/auth'
+import { prisma } from '@/lib/db'
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,8 +35,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if user has sufficient balance (mock check)
-    const mockBalance = user.balance || 1000000 // Default 1M for demo
+    // Get current balance using raw SQL (mock check)
+    let mockBalance = 1000000 // Default 1M for demo
+    try {
+      const balanceResult = await prisma.$queryRaw`
+        SELECT balance FROM users WHERE id = ${user.id}
+      ` as any[]
+      mockBalance = balanceResult[0]?.balance || 1000000
+    } catch (error) {
+      console.log('Using default balance for mock transaction')
+    }
+    
     if (mockBalance < amount) {
       return NextResponse.json(
         { error: `Saldo tidak mencukupi. Saldo Anda: ${formatCurrency(mockBalance)}` },
