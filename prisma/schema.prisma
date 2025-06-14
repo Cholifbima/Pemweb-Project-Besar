@@ -11,6 +11,7 @@ generator client {
 datasource db {
   provider = "sqlserver"
   url      = env("DATABASE_URL")
+  // Note: DATABASE_URL is dynamically built from AZURE_SQL_* variables in production
 }
 
 model User {
