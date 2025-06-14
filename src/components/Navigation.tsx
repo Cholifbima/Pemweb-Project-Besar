@@ -126,7 +126,7 @@ export default function Navigation() {
             ) : user ? (
               <div className="flex items-center space-x-4">
                 <div className="text-right min-w-[120px]">
-                  <p className="text-white font-medium text-sm truncate">{user.fullName || user.username}</p>
+                  <p className="text-white font-medium text-sm truncate">{(user as any).fullName || user.username}</p>
                   <p className="text-green-400 text-xs font-semibold">{formatCurrency(user.balance)}</p>
                 </div>
                 
@@ -241,7 +241,7 @@ export default function Navigation() {
               ) : user ? (
                 <div className="px-4 py-3 border-t border-purple-500/20">
                   <div className="mb-4">
-                    <p className="text-white font-medium">{user.fullName || user.username}</p>
+                    <p className="text-white font-medium">{(user as any).fullName || user.username}</p>
                     <p className="text-green-400 text-sm font-semibold">{formatCurrency(user.balance)}</p>
                   </div>
                   

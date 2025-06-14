@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Invoice berhasil dikirim ke email',
       email: email,
-      emailId: response.id
+      emailId: response.data?.id || 'unknown'
     })
 
   } catch (error: any) {

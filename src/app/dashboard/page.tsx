@@ -153,7 +153,7 @@ export default function DashboardPage() {
       transactionId: transaction.id,
       date: transaction.createdAt,
       customer: {
-        name: user?.fullName || user?.username || 'User',
+        name: (user as any)?.fullName || user?.username || 'User',
         email: user?.email || '',
         gameEmail: transaction.email,
         gameUserId: transaction.userGameId
@@ -161,14 +161,14 @@ export default function DashboardPage() {
       transaction: {
         type: transaction.type,
         gameId: transaction.gameId,
-        itemId: transaction.itemId,
-        serviceId: transaction.serviceId,
+        itemId: transaction.itemId || undefined,
+        serviceId: transaction.serviceId || undefined,
         amount: transaction.amount,
         status: transaction.status
       },
       balance: {
         before: user?.balance || 0,
-        after: (user?.balance || 0) + transaction.amount, // Approximate
+        after: (user?.balance || 0) + transaction.amount,
         spent: transaction.amount
       }
     }
@@ -195,7 +195,7 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">
-            Selamat Datang, {user.fullName || user.username}! 👋
+                            Selamat Datang, {(user as any).fullName || user.username}! 👋
           </h1>
           <p className="text-purple-300">Kelola akun dan transaksi gaming Anda di sini</p>
         </div>
@@ -226,7 +226,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-gray-400 text-sm mb-1">Total Pengeluaran</p>
-              <p className="text-2xl font-bold text-white">{formatCurrency(user.totalSpent)}</p>
+              <p className="text-2xl font-bold text-white">{formatCurrency((user as any).totalSpent || 0)}</p>
             </div>
           </div>
 
@@ -252,11 +252,11 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-gray-400 text-sm mb-1">Member Sejak</p>
-              <p className="text-lg font-bold text-white">
-                {new Date(user.createdAt).toLocaleDateString('id-ID', { 
-                  year: 'numeric', 
-                  month: 'long' 
-                })}
+                            <p className="text-lg font-bold text-white">
+                {(user as any).createdAt ? new Date((user as any).createdAt).toLocaleDateString('id-ID', {
+                  year: 'numeric',
+                  month: 'long'
+                }) : 'Tidak diketahui'}
               </p>
             </div>
           </div>
@@ -308,21 +308,21 @@ export default function DashboardPage() {
               </div>
               <div>
                 <label className="text-gray-400 text-sm">Nama Lengkap</label>
-                <p className="text-white font-medium">{user.fullName || 'Belum diisi'}</p>
+                <p className="text-white font-medium">{(user as any).fullName || 'Belum diisi'}</p>
               </div>
               <div>
                 <label className="text-gray-400 text-sm">Nomor HP</label>
-                <p className="text-white font-medium">{user.phoneNumber || 'Belum diisi'}</p>
+                <p className="text-white font-medium">{(user as any).phoneNumber || 'Belum diisi'}</p>
               </div>
               <div>
                 <label className="text-gray-400 text-sm">Bergabung</label>
                 <p className="text-white font-medium">
-                  {new Date(user.createdAt).toLocaleDateString('id-ID', {
+                  {(user as any).createdAt ? new Date((user as any).createdAt).toLocaleDateString('id-ID', {
                     weekday: 'long',
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric'
-                  })}
+                  }) : 'Tidak diketahui'}
                 </p>
               </div>
             </div>
@@ -396,7 +396,7 @@ export default function DashboardPage() {
             transactionId: selectedTransaction.id,
             date: selectedTransaction.createdAt,
             customer: {
-              name: user?.fullName || user?.username || 'User',
+              name: (user as any)?.fullName || user?.username || 'User',
               email: user?.email || '',
               gameEmail: selectedTransaction.email,
               gameUserId: selectedTransaction.userGameId
@@ -404,8 +404,8 @@ export default function DashboardPage() {
             transaction: {
               type: selectedTransaction.type,
               gameId: selectedTransaction.gameId,
-              itemId: selectedTransaction.itemId,
-              serviceId: selectedTransaction.serviceId,
+              itemId: selectedTransaction.itemId || undefined,
+              serviceId: selectedTransaction.serviceId || undefined,
               amount: selectedTransaction.amount,
               status: selectedTransaction.status
             },

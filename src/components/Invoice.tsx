@@ -218,7 +218,7 @@ Invoice ini dibuat secara otomatis dan sah tanpa tanda tangan.
       }
       
       // Send email with new service (supports multiple providers and attachments)
-      const result = await sendInvoiceEmail(invoice.customer.email, invoice, invoiceImageBase64)
+      const result = await sendInvoiceEmail(invoice.customer.email, invoice, invoiceImageBase64 || undefined)
       
       if (result.success) {
         setIsEmailSent(true)
