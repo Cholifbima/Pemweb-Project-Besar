@@ -5,18 +5,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { User, Wallet, ShoppingBag, History, Star, GamepadIcon, Crown, Plus, CreditCard, CheckCircle, Clock, XCircle, AlertCircle } from 'lucide-react'
 import { showToast } from '@/lib/toast'
-
-interface UserData {
-  id: number
-  email: string
-  username: string
-  fullName: string | null
-  phoneNumber: string | null
-  balance: number
-  totalSpent: number
-  favoriteGames: string | null
-  createdAt: string
-}
+import { useUser } from '@/contexts/UserContext'
+import Invoice from '@/components/Invoice'
 
 interface Transaction {
   id: string
@@ -32,9 +22,11 @@ interface Transaction {
 }
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<UserData | null>(null)
+  const { user, updateBalance, refreshUser } = useUser()
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
+  const [showInvoice, setShowInvoice] = useState(false)
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
   const router = useRouter()
 
   const fetchUserData = useCallback(async () => {
@@ -45,7 +37,7 @@ export default function DashboardPage() {
         return
       }
       const data = await response.json()
-      setUser(data.user)
+      // User data is already managed by UserContext
     } catch (error) {
       console.error('Error fetching user data:', error)
       router.push('/login')
@@ -58,6 +50,9 @@ export default function DashboardPage() {
       if (response.ok) {
         const data = await response.json()
         setTransactions(data.transactions || [])
+        console.log('📊 Transactions loaded:', data.transactions?.length || 0)
+      } else {
+        console.log('❌ Failed to fetch transactions:', response.status)
       }
     } catch (error) {
       console.error('Error fetching transactions:', error)
@@ -139,7 +134,7 @@ export default function DashboardPage() {
     try {
       // Demo: Add 100,000 IDR to balance
       const newBalance = user.balance + 100000
-      setUser({ ...user, balance: newBalance })
+      updateBalance(newBalance)
       
       console.log('Balance updated:', newBalance) // Debug log
       
@@ -150,6 +145,36 @@ export default function DashboardPage() {
       console.error('Error adding balance:', error)
       showToast.error('Gagal menambah saldo')
     }
+  }
+
+  const handleViewInvoice = (transaction: Transaction) => {
+    // Generate invoice data from transaction
+    const invoiceData = {
+      transactionId: transaction.id,
+      date: transaction.createdAt,
+      customer: {
+        name: user?.fullName || user?.username || 'User',
+        email: user?.email || '',
+        gameEmail: transaction.email,
+        gameUserId: transaction.userGameId
+      },
+      transaction: {
+        type: transaction.type,
+        gameId: transaction.gameId,
+        itemId: transaction.itemId,
+        serviceId: transaction.serviceId,
+        amount: transaction.amount,
+        status: transaction.status
+      },
+      balance: {
+        before: user?.balance || 0,
+        after: (user?.balance || 0) + transaction.amount, // Approximate
+        spent: transaction.amount
+      }
+    }
+    
+    setSelectedTransaction(transaction)
+    setShowInvoice(true)
   }
 
   if (loading) {
@@ -321,7 +346,11 @@ export default function DashboardPage() {
             ) : (
               <div className="space-y-4 max-h-96 overflow-y-auto">
                 {transactions.slice(0, 10).map((transaction) => (
-                  <div key={transaction.id} className="bg-gray-800/30 rounded-lg p-4 border border-gray-600/30">
+                  <div 
+                    key={transaction.id} 
+                    onClick={() => handleViewInvoice(transaction)}
+                    className="bg-gray-800/30 rounded-lg p-4 border border-gray-600/30 hover:border-purple-500/50 cursor-pointer transition-all duration-300 hover:bg-gray-700/30"
+                  >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center">
                         {getTransactionTypeIcon(transaction.type)}
@@ -338,10 +367,13 @@ export default function DashboardPage() {
                         </div>
                       </div>
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-gray-500 mb-2">
                       <p>Game: {transaction.gameId.toUpperCase()}</p>
                       <p>User ID: {transaction.userGameId}</p>
                       <p>{new Date(transaction.createdAt).toLocaleString('id-ID')}</p>
+                    </div>
+                    <div className="text-xs text-purple-400 font-medium">
+                      💡 Klik untuk lihat invoice dan kirim email
                     </div>
                   </div>
                 ))}
@@ -356,6 +388,40 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Invoice Modal */}
+      {showInvoice && selectedTransaction && (
+        <Invoice
+          invoice={{
+            transactionId: selectedTransaction.id,
+            date: selectedTransaction.createdAt,
+            customer: {
+              name: user?.fullName || user?.username || 'User',
+              email: user?.email || '',
+              gameEmail: selectedTransaction.email,
+              gameUserId: selectedTransaction.userGameId
+            },
+            transaction: {
+              type: selectedTransaction.type,
+              gameId: selectedTransaction.gameId,
+              itemId: selectedTransaction.itemId,
+              serviceId: selectedTransaction.serviceId,
+              amount: selectedTransaction.amount,
+              status: selectedTransaction.status
+            },
+            balance: {
+              before: user?.balance || 0,
+              after: (user?.balance || 0) + selectedTransaction.amount,
+              spent: selectedTransaction.amount
+            }
+          }}
+          isOpen={showInvoice}
+          onClose={() => {
+            setShowInvoice(false)
+            setSelectedTransaction(null)
+          }}
+        />
+      )}
     </div>
   )
 } 

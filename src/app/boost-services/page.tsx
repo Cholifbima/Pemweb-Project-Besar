@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { Star, TrendingUp, Trophy, Zap, Search, Filter, Crown, Target, Users, Clock } from 'lucide-react'
 import { games, getBoostGames, getPopularGames, Game } from '@/data/games'
@@ -11,8 +11,9 @@ export default function BoostServicesPage() {
   const [filteredGames, setFilteredGames] = useState<Game[]>([])
   const [currentSlide, setCurrentSlide] = useState(0)
 
-  const boostGames = getBoostGames()
-  const popularBoostGames = getPopularGames().filter(game => game.hasBoost)
+  // Memoize data to prevent unnecessary re-renders
+  const boostGames = useMemo(() => getBoostGames(), [])
+  const popularBoostGames = useMemo(() => getPopularGames().filter(game => game.hasBoost), [])
   
   const categories = [
     { id: 'all', name: 'Semua Game', icon: '🎮' },
@@ -23,17 +24,19 @@ export default function BoostServicesPage() {
     { id: 'card', name: 'Card Game', icon: '🃏' },
   ]
 
-  // Auto-slide for popular games
+  // Auto-slide for popular games - Fixed dependency
   useEffect(() => {
+    if (popularBoostGames.length === 0) return
+    
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % popularBoostGames.length)
     }, 4000)
     return () => clearInterval(interval)
   }, [popularBoostGames.length])
 
-  // Filter games based on search and category
+  // Filter games based on search and category - Fixed dependency
   useEffect(() => {
-    let filtered = boostGames
+    let filtered = [...boostGames] // Create new array to avoid mutation
 
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(game => game.category === selectedCategory)
@@ -60,85 +63,99 @@ export default function BoostServicesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       {/* Hero Section with Animated Slider */}
-      <div className="relative overflow-hidden">
-        <div className="container mx-auto px-4 py-16">
+      <section className="relative py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h1 className="text-5xl font-bold text-white mb-4 animate-fade-in">
+            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 animate-fade-in">
               🏆 Joki & Boost Services
             </h1>
-            <p className="text-xl text-purple-300 animate-fade-in-delay">
+            <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto animate-fade-in-delay">
               Tingkatkan rank dan skill gaming kamu dengan bantuan pro player
             </p>
           </div>
 
-          {/* Popular Games Slider */}
-          <div className="relative mb-16">
+          {/* Popular Games Slider - Using Home page structure */}
+          <div className="relative max-w-4xl mx-auto mb-16">
             <div className="flex items-center justify-center mb-6">
               <TrendingUp className="w-6 h-6 text-yellow-400 mr-2" />
               <h2 className="text-2xl font-bold text-white">Joki Terpopuler</h2>
             </div>
             
-            <div className="relative max-w-4xl mx-auto">
-              <div className="overflow-hidden rounded-2xl">
-                <div 
-                  className="flex transition-transform duration-500 ease-in-out"
-                  style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-                >
-                  {popularBoostGames.map((game, index) => (
-                    <div key={game.id} className="w-full flex-shrink-0">
-                      <Link href={`/boost-services/${game.id}`}>
-                        <div className="relative group cursor-pointer">
-                          <div className="bg-gradient-to-r from-orange-600/20 to-red-600/20 backdrop-blur-md border border-orange-500/30 rounded-2xl p-8 hover:border-orange-400/50 transition-all duration-300 transform hover:scale-105">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-6">
-                                <div className="text-6xl animate-bounce">{game.icon}</div>
-                                <div>
-                                  <h3 className="text-3xl font-bold text-white mb-2">{game.name}</h3>
-                                  <p className="text-orange-300 mb-2">{game.description}</p>
-                                  <div className="flex items-center space-x-4">
-                                    <div className="flex items-center">
-                                      <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                                      <span className="text-yellow-400 font-semibold">{game.rating}</span>
-                                    </div>
-                                    <span className="text-gray-400">by {game.publisher}</span>
-                                  </div>
+            <div className="overflow-hidden rounded-2xl">
+              <div 
+                className="flex transition-transform duration-500 ease-in-out"
+                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+              >
+                {popularBoostGames.map((game, index) => (
+                  <div key={game.id} className="w-full flex-shrink-0">
+                    <Link href={`/boost-services/${game.id}`}>
+                      <div className="bg-gradient-to-r from-orange-600/20 to-red-600/20 backdrop-blur-md border border-orange-500/30 rounded-2xl p-4 sm:p-8 hover:border-orange-400/50 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+                        <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
+                          <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
+                            <div className="text-4xl sm:text-6xl animate-bounce">{game.icon}</div>
+                            <div className="text-center sm:text-left">
+                              <h3 className="text-2xl sm:text-3xl font-bold text-white mb-2">{game.name}</h3>
+                              <p className="text-orange-300 mb-2 text-sm sm:text-base">{game.description}</p>
+                              <div className="flex flex-wrap items-center justify-center sm:justify-start space-x-2 sm:space-x-4">
+                                <div className="flex items-center">
+                                  <Star className="w-4 h-4 text-yellow-400 mr-1" />
+                                  <span className="text-yellow-400 font-semibold text-sm">{game.rating}</span>
                                 </div>
-                              </div>
-                              <div className="text-right">
-                                <div className="bg-orange-500/20 text-orange-400 px-4 py-2 rounded-full text-sm font-semibold mb-2">
-                                  🔥 POPULER
-                                </div>
-                                <div className="text-orange-300">
-                                  Mulai dari {formatCurrency(game.boostServices?.[0]?.price || 0)}
-                                </div>
+                                <span className="text-gray-400 text-sm">by {game.publisher}</span>
                               </div>
                             </div>
                           </div>
+                          <div className="text-center sm:text-right">
+                            <div className="bg-orange-500/20 text-orange-400 px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-semibold mb-2">
+                              🔥 POPULER
+                            </div>
+                            <div className="text-orange-300 text-sm sm:text-base">
+                              Mulai dari {formatCurrency(game.boostServices?.[0]?.price || 0)}
+                            </div>
+                          </div>
                         </div>
-                      </Link>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Slider Indicators */}
-              <div className="flex justify-center mt-6 space-x-2">
-                {popularBoostGames.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentSlide(index)}
-                    className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                      index === currentSlide 
-                        ? 'bg-orange-400 w-8' 
-                        : 'bg-orange-600/50 hover:bg-orange-500'
-                    }`}
-                  />
+                      </div>
+                    </Link>
+                  </div>
                 ))}
               </div>
             </div>
+            
+            {/* Manual Navigation Arrows */}
+            <button
+              onClick={() => setCurrentSlide((prev) => (prev - 1 + popularBoostGames.length) % popularBoostGames.length)}
+              className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-300"
+            >
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setCurrentSlide((prev) => (prev + 1) % popularBoostGames.length)}
+              className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-300"
+            >
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+            
+            {/* Slider Indicators */}
+            <div className="flex justify-center mt-6 space-x-2">
+              {popularBoostGames.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentSlide(index)}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                    index === currentSlide 
+                      ? 'bg-orange-400 w-8' 
+                      : 'bg-orange-600/50 hover:bg-orange-500'
+                  }`}
+                />
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Search and Filter Section */}
       <div className="container mx-auto px-4 mb-8">

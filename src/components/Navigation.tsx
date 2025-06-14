@@ -1,42 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { GamepadIcon, User, LogOut, Home, Gamepad, Trophy, Phone, Menu, X } from 'lucide-react'
 import { showToast } from '@/lib/toast'
-
-interface User {
-  id: number
-  username: string
-  fullName: string | null
-  balance: number
-}
+import { useUser } from '@/contexts/UserContext'
 
 export default function Navigation() {
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const { user, setUser, isLoading } = useUser()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
-
-  useEffect(() => {
-    checkAuthStatus()
-  }, [])
-
-  const checkAuthStatus = async () => {
-    try {
-      const response = await fetch('/api/auth/me')
-      if (response.ok) {
-        const data = await response.json()
-        setUser(data.user)
-      }
-    } catch (error) {
-      console.error('Error checking auth status:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const handleLogout = async () => {
     showToast.loading('Sedang logout...')
@@ -81,23 +56,56 @@ export default function Navigation() {
   ]
 
   return (
-    <nav className="bg-black/20 backdrop-blur-md border-b border-purple-500/20 sticky top-0 z-40">
+    <nav className="bg-black/20 backdrop-blur-md border-b border-purple-500/20 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <GamepadIcon className="w-8 h-8 text-purple-400" />
-            <span className="text-xl font-bold text-white">DoaIbu Store</span>
-          </Link>
+          {/* Logo - Fixed width */}
+          <div className="flex items-center w-48">
+            <Link 
+              href="/" 
+              onClick={(e) => {
+                e.preventDefault();
+                console.log('🏠 Logo clicked - navigating to home');
+                console.log('📍 Current pathname:', pathname);
+                
+                // Use window.location.href for problematic pages (top-up, boost-services)
+                if (pathname.includes('/top-up') || pathname.includes('/boost-services')) {
+                  console.log('🚨 Using window.location.href for problematic page');
+                  window.location.href = '/';
+                } else {
+                  console.log('✅ Using router.push for normal navigation');
+                  router.push('/');
+                }
+              }}
+              className="flex items-center space-x-2"
+            >
+              <GamepadIcon className="w-8 h-8 text-purple-400" />
+              <span className="text-xl font-bold text-white">DoaIbu Store</span>
+            </Link>
+          </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          {/* Desktop Navigation - Centered */}
+          <div className="hidden md:flex items-center space-x-8 flex-1 justify-center">
             {navLinks.map((link) => {
               const Icon = link.icon
               return (
                 <Link
                   key={link.href}
                   href={link.href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    console.log('🔗 Navigation link clicked:', link.label, 'href:', link.href);
+                    console.log('📍 Current pathname:', pathname);
+                    
+                    // Use window.location.href for problematic pages (top-up, boost-services)
+                    if (pathname.includes('/top-up') || pathname.includes('/boost-services')) {
+                      console.log('🚨 Using window.location.href for problematic page');
+                      window.location.href = link.href;
+                    } else {
+                      console.log('✅ Using router.push for normal navigation');
+                      router.push(link.href);
+                    }
+                  }}
                   className={`flex items-center space-x-1 px-3 py-2 rounded-lg transition-colors ${
                     isActive(link.href)
                       ? 'text-purple-400 bg-purple-500/20'
@@ -111,53 +119,78 @@ export default function Navigation() {
             })}
           </div>
 
-          {/* User Menu / Login Button */}
-          <div className="hidden md:flex items-center space-x-4">
+          {/* User Menu / Login Button - Fixed width */}
+          <div className="hidden md:flex items-center justify-end w-80">
             {isLoading ? (
               <div className="w-8 h-8 bg-gray-600 rounded-full animate-pulse"></div>
             ) : user ? (
-              <>
-                {/* User Info */}
-                <div className="flex items-center space-x-4">
-                  <div className="text-right">
-                    <p className="text-white font-medium text-sm">{user.fullName || user.username}</p>
-                    <p className="text-green-400 text-xs font-semibold">{formatCurrency(user.balance)}</p>
-                  </div>
-                  
-                  {/* Dashboard Button */}
-                  <Link
-                    href="/dashboard"
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                      isActive('/dashboard')
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-purple-500/20 text-purple-400 hover:bg-purple-500/30'
-                    }`}
-                  >
-                    <User className="w-4 h-4" />
-                    <span>Dashboard</span>
-                  </Link>
-
-                  {/* Logout Button */}
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span>Logout</span>
-                  </button>
+              <div className="flex items-center space-x-4">
+                <div className="text-right min-w-[120px]">
+                  <p className="text-white font-medium text-sm truncate">{user.fullName || user.username}</p>
+                  <p className="text-green-400 text-xs font-semibold">{formatCurrency(user.balance)}</p>
                 </div>
-              </>
+                
+                {/* Dashboard Button */}
+                <Link
+                  href="/dashboard"
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${
+                    isActive('/dashboard')
+                      ? 'bg-purple-600 text-white'
+                      : 'bg-purple-500/20 text-purple-400 hover:bg-purple-500/30'
+                  }`}
+                >
+                  <User className="w-4 h-4" />
+                  <span>Dashboard</span>
+                </Link>
+
+                {/* Logout Button */}
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors whitespace-nowrap"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Logout</span>
+                </button>
+              </div>
             ) : (
               <div className="flex items-center space-x-4">
                 <Link
                   href="/login"
-                  className="text-gray-300 hover:text-purple-400 transition-colors px-4 py-2"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    console.log('🔑 Login button clicked');
+                    console.log('📍 Current pathname:', pathname);
+                    
+                    // Use window.location.href for problematic pages (top-up, boost-services)
+                    if (pathname.includes('/top-up') || pathname.includes('/boost-services')) {
+                      console.log('🚨 Using window.location.href for problematic page');
+                      window.location.href = '/login';
+                    } else {
+                      console.log('✅ Using router.push for normal navigation');
+                      router.push('/login');
+                    }
+                  }}
+                  className="text-gray-300 hover:text-purple-400 transition-colors px-4 py-2 whitespace-nowrap"
                 >
                   Login
                 </Link>
                 <Link
                   href="/register"
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold px-6 py-2 rounded-lg transition-all duration-300"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    console.log('📝 Register button clicked');
+                    console.log('📍 Current pathname:', pathname);
+                    
+                    // Use window.location.href for problematic pages (top-up, boost-services)
+                    if (pathname.includes('/top-up') || pathname.includes('/boost-services')) {
+                      console.log('🚨 Using window.location.href for problematic page');
+                      window.location.href = '/register';
+                    } else {
+                      console.log('✅ Using router.push for normal navigation');
+                      router.push('/register');
+                    }
+                  }}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold px-6 py-2 rounded-lg transition-all duration-300 whitespace-nowrap"
                 >
                   Register
                 </Link>

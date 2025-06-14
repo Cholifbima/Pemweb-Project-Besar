@@ -11,7 +11,8 @@ export default function ToastProvider() {
       containerClassName=""
       containerStyle={{
         top: 80, // Posisi di bawah navigation bar
-        zIndex: 9999, // Ensure toasts are above everything
+        zIndex: 1000, // Above navigation but not too high
+        pointerEvents: 'none', // Allow clicks to pass through container
       }}
       // Limit maksimal toast yang tampil bersamaan
       toastOptions={{
@@ -31,7 +32,7 @@ export default function ToastProvider() {
           minWidth: '320px',
           textAlign: 'left', // Align text to left karena ada tombol X
           position: 'relative',
-          zIndex: 10000,
+          zIndex: 1001,
           pointerEvents: 'auto', // Ensure toasts can be interacted with
         },
         // Default options for specific types

@@ -107,7 +107,27 @@ export default function RegisterPage() {
             <span className="text-2xl font-bold text-white">DoaIbu Store</span>
           </Link>
           <h1 className="text-3xl font-bold text-white mb-2">Buat Akun Baru</h1>
-          <p className="text-gray-300">Bergabung dengan komunitas gamer!</p>
+          <p className="text-gray-300 mb-3">Bergabung dengan komunitas gamer!</p>
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 text-left">
+            <h3 className="text-blue-400 font-semibold mb-2 flex items-center">
+              <span className="mr-2">🎁</span>
+              Bonus Pendaftaran
+            </h3>
+            <ul className="text-sm text-gray-300 space-y-1">
+              <li className="flex items-center">
+                <span className="text-green-400 mr-2">✓</span>
+                Saldo demo Rp 1.000.000 gratis
+              </li>
+              <li className="flex items-center">
+                <span className="text-green-400 mr-2">✓</span>
+                Invoice otomatis dikirim ke email
+              </li>
+              <li className="flex items-center">
+                <span className="text-green-400 mr-2">✓</span>
+                Akses ke semua layanan gaming
+              </li>
+            </ul>
+          </div>
         </div>
 
         {/* Register Form */}
@@ -129,6 +149,10 @@ export default function RegisterPage() {
                 required
                 disabled={loading}
               />
+              <p className="text-blue-400 text-xs mt-1 flex items-center">
+                <span className="mr-1">📧</span>
+                Email ini akan digunakan untuk pengiriman invoice transaksi
+              </p>
             </div>
 
             {/* Username Field */}

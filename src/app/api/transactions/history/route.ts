@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error: any) {
-    console.error('Transaction history error:', error)
+    console.error('Get transactions error:', error)
     return NextResponse.json(
       { error: 'Terjadi kesalahan saat mengambil riwayat transaksi' },
       { status: 500 }

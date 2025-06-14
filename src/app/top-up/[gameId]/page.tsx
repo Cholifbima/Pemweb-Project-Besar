@@ -6,12 +6,14 @@ import Link from 'next/link'
 import { ArrowLeft, Star, Shield, Zap, CreditCard, User, Smartphone, Mail, CheckCircle, AlertCircle, Crown, Gift } from 'lucide-react'
 import { getGameById, TopUpItem } from '@/data/games'
 import { showToast } from '@/lib/toast'
+import { useUser } from '@/contexts/UserContext'
 import Invoice from '@/components/Invoice'
 
 export default function GameTopUpPage() {
   const params = useParams()
   const router = useRouter()
   const gameId = params.gameId as string
+  const { updateBalance } = useUser()
   
   const [game, setGame] = useState(getGameById(gameId))
   const [selectedItem, setSelectedItem] = useState<TopUpItem | null>(null)
@@ -64,7 +66,7 @@ export default function GameTopUpPage() {
     showToast.loading('Memproses pembelian...')
 
     try {
-      const response = await fetch('/api/transactions/mock', {
+      const response = await fetch('/api/transactions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -92,6 +94,11 @@ export default function GameTopUpPage() {
 
       // Show success message with transaction details
       showToast.success(`🎉 Top up ${selectedItem.name} berhasil! ID Transaksi: ${data.transaction.id}`)
+      
+      // Update balance from response
+      if (data.transaction && data.transaction.newBalance !== undefined) {
+        updateBalance(data.transaction.newBalance)
+      }
       
       // Show invoice
       if (data.invoice) {

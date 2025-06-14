@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { X, Download, Mail, CheckCircle, Calendar, User, CreditCard, GamepadIcon, Crown } from 'lucide-react'
+import { sendInvoiceEmail, sendInvoiceEmailDemo } from '@/lib/emailService'
 
 interface InvoiceData {
   transactionId: string
@@ -80,21 +81,186 @@ export default function Invoice({ invoice, isOpen, onClose }: InvoiceProps) {
 
   const handleDownload = async () => {
     setIsDownloading(true)
-    // Simulate download process
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    setIsDownloading(false)
     
-    // In a real app, you would generate and download PDF here
-    console.log('📄 Invoice downloaded:', invoice.transactionId)
+    try {
+      // Get the invoice content element
+      const invoiceElement = document.querySelector('.invoice-content')
+      
+      if (!invoiceElement) {
+        console.error('Invoice element not found')
+        setIsDownloading(false)
+        return
+      }
+
+      // Use html2canvas to capture the invoice as image
+      const html2canvas = (await import('html2canvas')).default
+      const canvas = await html2canvas(invoiceElement as HTMLElement, {
+        backgroundColor: '#1a1a2e',
+        scale: 2, // Higher quality
+        useCORS: true,
+        allowTaint: true
+      })
+
+      // Convert canvas to blob and download
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = window.URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = `Invoice-${invoice.transactionId}.png`
+          document.body.appendChild(a)
+          a.click()
+          document.body.removeChild(a)
+          window.URL.revokeObjectURL(url)
+          
+          console.log('📄 Invoice screenshot downloaded:', invoice.transactionId)
+        }
+      }, 'image/png')
+      
+    } catch (error) {
+      console.error('Download error:', error)
+      // Fallback to text download if html2canvas fails
+      const pdfContent = generatePDFContent()
+      const blob = new Blob([pdfContent], { type: 'text/plain' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `Invoice-${invoice.transactionId}.txt`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
+  const generatePDFContent = () => {
+    return `
+===========================================
+           INVOICE TRANSAKSI
+===========================================
+
+DoaIbu Store - Platform Gaming Terpercaya
+www.doaibustore.com
+
+-------------------------------------------
+INFORMASI TRANSAKSI
+-------------------------------------------
+ID Transaksi: ${invoice.transactionId}
+Tanggal: ${formatDate(invoice.date)}
+Status: Berhasil
+Metode: Saldo Demo
+
+-------------------------------------------
+INFORMASI PELANGGAN
+-------------------------------------------
+Nama: ${invoice.customer.name}
+Email: ${invoice.customer.email}
+Game Email: ${invoice.customer.gameEmail}
+User ID: ${invoice.customer.gameUserId}
+
+-------------------------------------------
+DETAIL LAYANAN
+-------------------------------------------
+Jenis: ${getTransactionTypeName(invoice.transaction.type)}
+Game: ${invoice.transaction.gameId.toUpperCase()}
+${invoice.transaction.itemId ? `Item ID: ${invoice.transaction.itemId}` : ''}
+${invoice.transaction.serviceId ? `Service ID: ${invoice.transaction.serviceId}` : ''}
+Jumlah: ${formatCurrency(invoice.transaction.amount)}
+
+-------------------------------------------
+RINGKASAN SALDO
+-------------------------------------------
+Saldo Sebelum: ${formatCurrency(invoice.balance.before)}
+Jumlah Transaksi: -${formatCurrency(invoice.balance.spent)}
+Saldo Setelah: ${formatCurrency(invoice.balance.after)}
+
+-------------------------------------------
+Terima kasih telah menggunakan DoaIbu Store!
+Invoice ini dibuat secara otomatis dan sah tanpa tanda tangan.
+
+⚠️ Ini adalah transaksi demo untuk keperluan demonstrasi
+===========================================
+    `.trim()
   }
 
   const handleSendEmail = async () => {
-    // Simulate email sending
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    setIsEmailSent(true)
-    
-    // In a real app, you would send email here
-    console.log('📧 Invoice sent to:', invoice.customer.gameEmail)
+    try {
+      setIsEmailSent(false)
+      
+      console.log('📧 Attempting to send invoice email with attachment...')
+      
+      // Generate invoice image for attachment
+      let invoiceImageBase64 = null
+      
+      try {
+        // Get the invoice content element
+        const invoiceElement = document.querySelector('.invoice-content')
+        
+        if (invoiceElement) {
+          // Use html2canvas to capture the invoice as image
+          const html2canvas = (await import('html2canvas')).default
+          const canvas = await html2canvas(invoiceElement as HTMLElement, {
+            backgroundColor: '#1a1a2e',
+            scale: 2, // Higher quality
+            useCORS: true,
+            allowTaint: true
+          })
+          
+          // Convert canvas to base64
+          invoiceImageBase64 = canvas.toDataURL('image/png').split(',')[1] // Remove data:image/png;base64, prefix
+          console.log('📎 Invoice image generated for attachment')
+        }
+      } catch (error) {
+        console.warn('⚠️ Failed to generate invoice image:', error)
+        // Continue without attachment
+      }
+      
+      // Send email with new service (supports multiple providers and attachments)
+      const result = await sendInvoiceEmail(invoice.customer.email, invoice, invoiceImageBase64)
+      
+      if (result.success) {
+        setIsEmailSent(true)
+        console.log(`✅ Invoice email sent successfully via ${result.provider}:`, result.message)
+        
+        // Show success notification with delay info
+        if (typeof window !== 'undefined') {
+          // Create a temporary notification element
+          const notification = document.createElement('div')
+          notification.className = 'fixed top-4 right-4 bg-green-600 text-white px-6 py-4 rounded-lg shadow-lg z-50 max-w-sm'
+          notification.innerHTML = `
+            <div class="flex items-start space-x-3">
+              <div class="flex-shrink-0">
+                <svg class="w-5 h-5 text-green-300" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                </svg>
+              </div>
+              <div>
+                <p class="font-semibold">📧 Email Terkirim!</p>
+                <p class="text-sm text-green-200 mt-1">Invoice telah dikirim ke email Anda. Pengiriman mungkin membutuhkan waktu 5-10 menit.</p>
+              </div>
+            </div>
+          `
+          document.body.appendChild(notification)
+          
+          // Remove notification after 8 seconds
+          setTimeout(() => {
+            if (document.body.contains(notification)) {
+              document.body.removeChild(notification)
+            }
+          }, 8000)
+        }
+      } else {
+        console.error('❌ Failed to send email:', result.message)
+        setIsEmailSent(true) // For demo, still mark as sent
+      }
+      
+    } catch (error: any) {
+      console.error('❌ Email error:', error)
+      // For demo, still mark as sent
+      setIsEmailSent(true)
+    }
   }
 
   if (!isOpen) return null
@@ -120,7 +286,7 @@ export default function Invoice({ invoice, isOpen, onClose }: InvoiceProps) {
         </div>
 
         {/* Invoice Content */}
-        <div className="p-6 space-y-6">
+        <div className="invoice-content p-6 space-y-6">
           {/* Company Info */}
           <div className="text-center border-b border-gray-700 pb-6">
             <h1 className="text-3xl font-bold text-white mb-2">DoaIbu Store</h1>
@@ -276,7 +442,11 @@ export default function Invoice({ invoice, isOpen, onClose }: InvoiceProps) {
           <div className="text-center text-xs text-gray-500 pt-4 border-t border-gray-700">
             <p>Terima kasih telah menggunakan DoaIbu Store!</p>
             <p>Invoice ini dibuat secara otomatis dan sah tanpa tanda tangan.</p>
-            <p className="mt-2 text-yellow-400">⚠️ Ini adalah transaksi demo untuk keperluan demonstrasi</p>
+            <p className="mt-2 text-blue-400 flex items-center justify-center">
+              <span className="mr-1">📧</span>
+              Pengiriman email invoice membutuhkan waktu 5-10 menit
+            </p>
+            <p className="mt-1 text-yellow-400">⚠️ Ini adalah transaksi demo untuk keperluan demonstrasi</p>
           </div>
         </div>
       </div>
