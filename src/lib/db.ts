@@ -18,13 +18,7 @@ function getDatabaseUrl(): string {
     });
   }
 
-  // Priority 1: Local development dengan SQLite
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🔧 Using development SQLite database');
-    return "file:./dev.db";
-  }
-  
-  // Priority 2: Azure deployment dengan individual variables (UTAMA)
+  // Priority 1: Azure deployment dengan individual variables (UTAMA untuk production)
   if (process.env.AZURE_SQL_SERVER && process.env.AZURE_SQL_USERNAME && process.env.AZURE_SQL_PASSWORD && process.env.AZURE_SQL_DATABASE) {
     const server = process.env.AZURE_SQL_SERVER;
     const username = process.env.AZURE_SQL_USERNAME;
@@ -46,15 +40,15 @@ function getDatabaseUrl(): string {
     return connectionString;
   }
 
-  // Priority 3: Fallback ke DATABASE_URL jika ada
+  // Priority 2: Fallback ke DATABASE_URL jika ada
   if (process.env.DATABASE_URL) {
     console.log('✅ Using DATABASE_URL from environment');
     return process.env.DATABASE_URL;
   }
   
-  // Priority 4: Build-time fallback (tidak akan digunakan di runtime)
-  console.log('⚠️ Using build-time fallback - this should not happen');
-  return "sqlserver://localhost:1433;database=temp;user=temp;password=temp;encrypt=true;";
+  // Priority 3: Development fallback - use in-memory database for testing
+  console.log('⚠️ No database configuration found, using fallback');
+  return "sqlserver://localhost:1433;database=tempdb;integratedSecurity=true;trustServerCertificate=true;";
 }
 
 function createPrismaClient() {
