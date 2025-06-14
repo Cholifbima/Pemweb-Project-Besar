@@ -29,7 +29,17 @@ export async function POST(request: NextRequest) {
     }
 
     const user = userResult.user
-    console.log('✅ User found:', user.id, user.username, 'Balance:', user.balance)
+    
+    // Get current balance using raw SQL
+    console.log('🔍 Getting current balance...')
+    const balanceResult = await prisma.$queryRaw`
+      SELECT balance, totalSpent FROM users WHERE id = ${user.id}
+    ` as any[]
+    
+    const currentBalance = balanceResult[0]?.balance || 0
+    const currentTotalSpent = balanceResult[0]?.totalSpent || 0
+    
+    console.log('✅ User found:', user.id, user.username, 'Balance:', currentBalance)
     
     const body = await request.json()
     const { type, gameId, itemId, serviceId, amount, userGameId, email } = body
@@ -46,10 +56,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user has sufficient balance
-    if (user.balance < amount) {
-      console.log('❌ Insufficient balance:', user.balance, '<', amount)
+    if (currentBalance < amount) {
+      console.log('❌ Insufficient balance:', currentBalance, '<', amount)
       return NextResponse.json(
-        { error: `Saldo tidak mencukupi. Saldo Anda: ${formatCurrency(user.balance)}` },
+        { error: `Saldo tidak mencukupi. Saldo Anda: ${formatCurrency(currentBalance)}` },
         { status: 400 }
       )
     }
@@ -79,17 +89,16 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Transaction created:', transaction.id)
 
-    // Update user balance
-    const newBalance = user.balance - amount
-    console.log('💰 Updating user balance:', user.balance, '-', amount, '=', newBalance)
+    // Update user balance using raw SQL
+    const newBalance = currentBalance - amount
+    const newTotalSpent = currentTotalSpent + amount
+    console.log('💰 Updating user balance:', currentBalance, '-', amount, '=', newBalance)
     
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { 
-        balance: newBalance,
-        totalSpent: (user.totalSpent || 0) + amount
-      }
-    })
+    await prisma.$executeRaw`
+      UPDATE users 
+      SET balance = ${newBalance}, totalSpent = ${newTotalSpent}
+      WHERE id = ${user.id}
+    `
 
     console.log('✅ User balance updated successfully')
 
@@ -112,7 +121,7 @@ export async function POST(request: NextRequest) {
         status: 'completed'
       },
       balance: {
-        before: user.balance,
+        before: currentBalance,
         after: newBalance,
         spent: amount
       }
@@ -168,6 +177,15 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
+}
+
+function formatCurrency(amount: number) {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+  }).format(amount)
+} 
 }
 
 function formatCurrency(amount: number) {

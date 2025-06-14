@@ -43,18 +43,23 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Calculate new balance
-    const newBalance = user.balance + amount
-    console.log('💰 Updating balance:', user.balance, '+', amount, '=', newBalance)
+    // Get current balance using raw SQL (since balance field might not be in Prisma client yet)
+    console.log('🔍 Getting current balance...')
+    const currentBalanceResult = await prisma.$queryRaw`
+      SELECT balance FROM users WHERE id = ${user.id}
+    ` as any[]
+    
+    const currentBalance = currentBalanceResult[0]?.balance || 0
+    const newBalance = currentBalance + amount
+    console.log('💰 Updating balance:', currentBalance, '+', amount, '=', newBalance)
 
-    // Update user balance in database
+    // Update user balance using raw SQL
     console.log('🔄 Updating user balance in database...')
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { 
-        balance: newBalance
-      }
-    })
+    await prisma.$executeRaw`
+      UPDATE users 
+      SET balance = ${newBalance}
+      WHERE id = ${user.id}
+    `
 
     console.log(`✅ Balance updated successfully for user ${user.id}: +${amount} = ${newBalance}`)
 
@@ -96,6 +101,11 @@ export async function POST(request: NextRequest) {
     }
     
     return NextResponse.json(
+      { error: 'Terjadi kesalahan saat menambah saldo: ' + error.message },
+      { status: 500 }
+    )
+  }
+} 
       { error: 'Terjadi kesalahan saat menambah saldo: ' + error.message },
       { status: 500 }
     )

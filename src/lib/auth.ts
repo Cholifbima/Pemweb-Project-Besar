@@ -141,7 +141,7 @@ export async function loginUser(emailOrUsername: string, password: string): Prom
         username: user.username,
         fullName: user.fullName,
         phoneNumber: user.phoneNumber,
-        balance: user.balance || 1000000, // Default balance if field doesn't exist
+        // Note: balance will be fetched separately using raw SQL when needed
       }
     };
   } catch (error: any) {
@@ -170,7 +170,7 @@ export async function getUserFromToken(token: string) {
           phoneNumber: true,
           favoriteGames: true,
           totalSpent: true,
-          balance: true,
+          // balance: true, // Commented out until Prisma client recognizes this field
           createdAt: true,
         }
       });
@@ -203,12 +203,12 @@ export async function getUserFromToken(token: string) {
           throw new Error('User tidak ditemukan');
         }
 
-        // Return user with default balance
+        // Return user without balance (will be fetched separately when needed)
         return { 
           success: true, 
           user: {
             ...user,
-            balance: 1000000, // Default balance for demo
+            // Note: balance will be fetched separately using raw SQL when needed
           }
         };
       }
