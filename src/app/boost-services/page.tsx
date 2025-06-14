@@ -198,79 +198,95 @@ export default function BoostServicesPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredGames.map((game, index) => (
-              <Link key={game.id} href={`/boost-services/${game.id}`}>
+              <div key={game.id} className="group cursor-pointer animate-fade-in-up" style={{ animationDelay: `${index * 0.1}s` }}>
                 <div 
-                  className="group cursor-pointer animate-fade-in-up"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-purple-500/20 p-6 hover:border-orange-400/50 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/20">
-                    {/* Game Icon and Badge */}
-                    <div className="relative mb-4">
-                      <div className="text-4xl mb-2 group-hover:animate-bounce">{game.icon}</div>
-                      {game.isPopular && (
-                        <div className="absolute top-0 right-0 bg-gradient-to-r from-orange-400 to-red-500 text-black text-xs font-bold px-2 py-1 rounded-full animate-pulse">
-                          🔥 HOT
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Game Info */}
-                    <h3 className="text-xl font-bold text-white mb-2 group-hover:text-orange-300 transition-colors">
-                      {game.name}
-                    </h3>
-                    <p className="text-gray-400 text-sm mb-3 line-clamp-2">{game.description}</p>
+                  className="bg-black/20 backdrop-blur-md rounded-2xl border border-purple-500/20 p-6 hover:border-orange-400/50 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/20"
+                  onClick={(e) => {
+                    console.log('🏆 Boost game card clicked:', game.name, 'ID:', game.id);
+                    console.log('🔗 Target URL:', `/boost-services/${game.id}`);
+                    console.log('📱 Event target:', e.target);
+                    console.log('🖱️ Event currentTarget:', e.currentTarget);
                     
-                    {/* Rating and Publisher */}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center">
-                        <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                        <span className="text-yellow-400 font-semibold text-sm">{game.rating}</span>
+                    // Manual navigation for testing
+                    window.location.href = `/boost-services/${game.id}`;
+                  }}
+                >
+                  {/* Game Icon and Badge */}
+                  <div className="relative mb-4">
+                    <div className="text-4xl mb-2 group-hover:animate-bounce">{game.icon}</div>
+                    {game.isPopular && (
+                      <div className="absolute top-0 right-0 bg-gradient-to-r from-orange-400 to-red-500 text-black text-xs font-bold px-2 py-1 rounded-full animate-pulse">
+                        🔥 HOT
                       </div>
-                      <span className="text-gray-500 text-xs">{game.publisher}</span>
-                    </div>
+                    )}
+                  </div>
 
-                    {/* Services Info */}
-                    <div className="border-t border-gray-700/50 pt-4 mb-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-gray-400 text-sm">Layanan tersedia</span>
-                        <span className="text-orange-400 font-bold text-sm">
-                          {game.boostServices?.length || 0} jenis
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-400 text-sm">Mulai dari</span>
-                        <span className="text-green-400 font-bold">
-                          {formatCurrency(game.boostServices?.[0]?.price || 0)}
-                        </span>
-                      </div>
+                  {/* Game Info */}
+                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-orange-300 transition-colors">
+                    {game.name}
+                  </h3>
+                  <p className="text-gray-400 text-sm mb-3 line-clamp-2">{game.description}</p>
+                  
+                  {/* Rating and Publisher */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                      <Star className="w-4 h-4 text-yellow-400 mr-1" />
+                      <span className="text-yellow-400 font-semibold text-sm">{game.rating}</span>
                     </div>
+                    <span className="text-gray-500 text-xs">{game.publisher}</span>
+                  </div>
 
-                    {/* Service Features */}
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center text-xs text-gray-400">
-                        <Crown className="w-3 h-3 mr-2 text-yellow-400" />
-                        Pro Player
-                      </div>
-                      <div className="flex items-center text-xs text-gray-400">
-                        <Target className="w-3 h-3 mr-2 text-green-400" />
-                        Win Rate Tinggi
-                      </div>
-                      <div className="flex items-center text-xs text-gray-400">
-                        <Clock className="w-3 h-3 mr-2 text-blue-400" />
-                        Proses Cepat
-                      </div>
+                  {/* Services Info */}
+                  <div className="border-t border-gray-700/50 pt-4 mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-gray-400 text-sm">Layanan tersedia</span>
+                      <span className="text-orange-400 font-bold text-sm">
+                        {game.boostServices?.length || 0} jenis
+                      </span>
                     </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-400 text-sm">Mulai dari</span>
+                      <span className="text-green-400 font-bold">
+                        {formatCurrency(game.boostServices?.[0]?.price || 0)}
+                      </span>
+                    </div>
+                  </div>
 
-                    {/* Hover Effect */}
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="flex items-center justify-center bg-gradient-to-r from-orange-600 to-red-600 text-white py-2 rounded-lg font-semibold">
-                        <Zap className="w-4 h-4 mr-2" />
-                        Boost Sekarang
-                      </div>
+                  {/* Service Features */}
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center text-xs text-gray-400">
+                      <Crown className="w-3 h-3 mr-2 text-yellow-400" />
+                      Pro Player
+                    </div>
+                    <div className="flex items-center text-xs text-gray-400">
+                      <Target className="w-3 h-3 mr-2 text-green-400" />
+                      Win Rate Tinggi
+                    </div>
+                    <div className="flex items-center text-xs text-gray-400">
+                      <Clock className="w-3 h-3 mr-2 text-blue-400" />
+                      Proses Cepat
+                    </div>
+                  </div>
+
+                  {/* Hover Effect */}
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div 
+                      className="flex items-center justify-center bg-gradient-to-r from-orange-600 to-red-600 text-white py-2 rounded-lg font-semibold cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        console.log('⚡ Boost button clicked:', game.name);
+                        console.log('🔗 Button target URL:', `/boost-services/${game.id}`);
+                        
+                        // Manual navigation for testing
+                        window.location.href = `/boost-services/${game.id}`;
+                      }}
+                    >
+                      <Zap className="w-4 h-4 mr-2" />
+                      Boost Sekarang
                     </div>
                   </div>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         )}
