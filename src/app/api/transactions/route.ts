@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
 
     // Get user from token
     const userResult = await getUserFromToken(token)
-    if (!userResult.success) {
+    if (!userResult.success || !userResult.user) {
       return NextResponse.json(
         { error: 'Token tidak valid' },
         { status: 401 }

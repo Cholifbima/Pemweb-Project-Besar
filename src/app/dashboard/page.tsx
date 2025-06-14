@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { User, Wallet, Trophy, ShoppingBag, Star, Clock, CheckCircle, AlertCircle, CreditCard, GamepadIcon, Crown, Plus, History } from 'lucide-react'
@@ -36,12 +36,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
-  useEffect(() => {
-    fetchUserData()
-    fetchTransactions()
-  }, [])
-
-  const fetchUserData = async () => {
+  const fetchUserData = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/me')
       if (!response.ok) {
@@ -54,9 +49,9 @@ export default function DashboardPage() {
       console.error('Error fetching user data:', error)
       router.push('/login')
     }
-  }
+  }, [router])
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     try {
       const response = await fetch('/api/transactions/history')
       if (response.ok) {
@@ -68,7 +63,12 @@ export default function DashboardPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    fetchUserData()
+    fetchTransactions()
+  }, [fetchUserData, fetchTransactions])
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
