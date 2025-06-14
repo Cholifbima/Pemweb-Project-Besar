@@ -67,13 +67,16 @@ export default function Navigation() {
   }
 
   const isActive = (path: string) => {
-    return pathname === path
+    if (path === '/') {
+      return pathname === path
+    }
+    return pathname.startsWith(path)
   }
 
   const navLinks = [
     { href: '/', label: 'Home', icon: Home },
     { href: '/top-up', label: 'Top Up', icon: Gamepad },
-    { href: '/boost-services', label: 'Boost Services', icon: Trophy },
+    { href: '/boost-services', label: 'Joki Game', icon: Trophy },
     { href: '/contact', label: 'Contact', icon: Phone },
   ]
 
