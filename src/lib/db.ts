@@ -26,14 +26,15 @@ function getDatabaseUrl(): string {
     const database = process.env.AZURE_SQL_DATABASE;
     const port = process.env.AZURE_SQL_PORT || '1433';
     
-    // Format connection string untuk Azure SQL Database
-    const connectionString = `sqlserver://${server}:${port};database=${database};user=${username};password=${password};encrypt=true;trustServerCertificate=false;connectionTimeout=30;`;
+    // Format connection string untuk Azure SQL Database dengan proper encoding
+    const connectionString = `sqlserver://${server}:${port};database=${database};user=${encodeURIComponent(username)};password=${encodeURIComponent(password)};encrypt=true;trustServerCertificate=false;connectionTimeout=30;loginTimeout=30;`;
     
     console.log('🔗 Using Azure SQL connection (built from env vars)');
     console.log('Server:', server);
     console.log('Database:', database);
     console.log('Username:', username);
-    console.log('Connection String:', connectionString.replace(password, '***'));
+    console.log('Port:', port);
+    console.log('Connection String (masked):', connectionString.replace(encodeURIComponent(password), '***'));
     
     return connectionString;
   }
@@ -41,6 +42,7 @@ function getDatabaseUrl(): string {
   // Priority 2: Fallback ke DATABASE_URL jika ada
   if (process.env.DATABASE_URL) {
     console.log('✅ Using DATABASE_URL from environment');
+    console.log('DATABASE_URL (masked):', process.env.DATABASE_URL.replace(/password=[^;]+/, 'password=***'));
     return process.env.DATABASE_URL;
   }
   
@@ -64,7 +66,8 @@ function createPrismaClient() {
       db: {
         url: databaseUrl
       }
-    }
+    },
+    errorFormat: 'pretty',
   })
 }
 

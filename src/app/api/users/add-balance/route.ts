@@ -4,19 +4,24 @@ import { prisma } from '@/lib/db'
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('🔄 Add balance API called')
+    
     // Get token from cookie
     const token = request.cookies.get('auth-token')?.value
 
     if (!token) {
+      console.log('❌ No auth token found')
       return NextResponse.json(
         { error: 'Silakan login terlebih dahulu' },
         { status: 401 }
       )
     }
 
+    console.log('🔍 Getting user from token...')
     // Get user from token
     const userResult = await getUserFromToken(token)
     if (!userResult.success || !userResult.user) {
+      console.log('❌ Invalid token or user not found')
       return NextResponse.json(
         { error: 'Token tidak valid' },
         { status: 401 }
@@ -24,11 +29,14 @@ export async function POST(request: NextRequest) {
     }
 
     const user = userResult.user
+    console.log('✅ User found:', user.id, user.username)
+    
     const body = await request.json()
     const { amount } = body
 
     // Validate amount
     if (!amount || amount <= 0) {
+      console.log('❌ Invalid amount:', amount)
       return NextResponse.json(
         { error: 'Jumlah saldo tidak valid' },
         { status: 400 }
@@ -37,8 +45,10 @@ export async function POST(request: NextRequest) {
 
     // Calculate new balance
     const newBalance = user.balance + amount
+    console.log('💰 Updating balance:', user.balance, '+', amount, '=', newBalance)
 
     // Update user balance in database
+    console.log('🔄 Updating user balance in database...')
     await prisma.user.update({
       where: { id: user.id },
       data: { 
@@ -46,7 +56,7 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    console.log(`💰 Balance added for user ${user.id}: +${amount} = ${newBalance}`)
+    console.log(`✅ Balance updated successfully for user ${user.id}: +${amount} = ${newBalance}`)
 
     return NextResponse.json({
       success: true,
@@ -56,9 +66,37 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error: any) {
-    console.error('Add balance error:', error)
+    console.error('❌ Add balance error details:', {
+      message: error.message,
+      code: error.code,
+      meta: error.meta,
+      stack: error.stack
+    })
+    
+    // Return more specific error messages
+    if (error.code === 'P2002') {
+      return NextResponse.json(
+        { error: 'Terjadi konflik data saat menambah saldo' },
+        { status: 409 }
+      )
+    }
+    
+    if (error.code === 'P2025') {
+      return NextResponse.json(
+        { error: 'User tidak ditemukan' },
+        { status: 404 }
+      )
+    }
+    
+    if (error.message?.includes('connect')) {
+      return NextResponse.json(
+        { error: 'Tidak dapat terhubung ke database' },
+        { status: 503 }
+      )
+    }
+    
     return NextResponse.json(
-      { error: 'Terjadi kesalahan saat menambah saldo' },
+      { error: 'Terjadi kesalahan saat menambah saldo: ' + error.message },
       { status: 500 }
     )
   }
