@@ -105,9 +105,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-} 
-      { error: 'Terjadi kesalahan saat menambah saldo: ' + error.message },
-      { status: 500 }
-    )
-  }
-} 
+}
