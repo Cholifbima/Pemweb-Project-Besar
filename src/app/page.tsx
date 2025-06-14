@@ -78,31 +78,31 @@ export default function Home() {
               >
                 {popularGames.map((game, index) => (
                   <div key={game.id} className="w-full flex-shrink-0">
-                    <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 backdrop-blur-md border border-purple-500/30 rounded-2xl p-8">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-6">
-                          <div className="text-6xl animate-bounce">{game.icon}</div>
-                          <div>
-                            <h3 className="text-3xl font-bold text-white mb-2">{game.name}</h3>
-                            <p className="text-purple-300 mb-2">{game.description}</p>
-                            <div className="flex items-center space-x-4">
+                    <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 backdrop-blur-md border border-purple-500/30 rounded-2xl p-4 sm:p-8">
+                      <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
+                        <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
+                          <div className="text-4xl sm:text-6xl animate-bounce">{game.icon}</div>
+                          <div className="text-center sm:text-left">
+                            <h3 className="text-2xl sm:text-3xl font-bold text-white mb-2">{game.name}</h3>
+                            <p className="text-purple-300 mb-2 text-sm sm:text-base">{game.description}</p>
+                            <div className="flex flex-wrap items-center justify-center sm:justify-start space-x-2 sm:space-x-4">
                               <div className="flex items-center">
                                 <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                                <span className="text-yellow-400 font-semibold">{game.rating}</span>
+                                <span className="text-yellow-400 font-semibold text-sm">{game.rating}</span>
                               </div>
-                              <span className="text-gray-400">by {game.publisher}</span>
+                              <span className="text-gray-400 text-sm">by {game.publisher}</span>
                             </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="bg-green-500/20 text-green-400 px-4 py-2 rounded-full text-sm font-semibold mb-2">
+                        <div className="text-center sm:text-right">
+                          <div className="bg-green-500/20 text-green-400 px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-semibold mb-2">
                             🔥 POPULER
                           </div>
-                          <div className="space-y-2">
+                          <div className="flex flex-col sm:space-y-2 space-y-1">
                             {game.hasTopUp && (
                               <Link 
                                 href={`/top-up/${game.id}`}
-                                className="block bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105"
+                                className="block bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 text-sm sm:text-base"
                               >
                                 Top Up
                               </Link>
@@ -110,7 +110,7 @@ export default function Home() {
                             {game.hasBoost && (
                               <Link 
                                 href={`/boost-services/${game.id}`}
-                                className="block bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white px-4 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105"
+                                className="block bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 text-sm sm:text-base"
                               >
                                 Joki
                               </Link>
@@ -123,6 +123,24 @@ export default function Home() {
                 ))}
               </div>
             </div>
+            
+            {/* Manual Navigation Arrows */}
+            <button
+              onClick={() => setCurrentSlide((prev) => (prev - 1 + popularGames.length) % popularGames.length)}
+              className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-300"
+            >
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setCurrentSlide((prev) => (prev + 1) % popularGames.length)}
+              className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-300"
+            >
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
             
             {/* Slider Indicators */}
             <div className="flex justify-center mt-6 space-x-2">
@@ -167,33 +185,33 @@ export default function Home() {
               <TrendingUp className="w-4 h-4 ml-2" />
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
             {topUpGames.slice(0, 4).map((game, index) => (
               <Link key={game.id} href={`/top-up/${game.id}`}>
                 <div 
-                  className="gaming-card rounded-xl p-6 text-center hover:scale-105 transition-all duration-300 cursor-pointer group animate-fade-in-up"
+                  className="gaming-card rounded-lg sm:rounded-xl p-3 sm:p-6 text-center hover:scale-105 transition-all duration-300 cursor-pointer group animate-fade-in-up"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <div className="relative mb-4">
-                    <div className="w-full h-32 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                      <span className="text-4xl">{game.icon}</span>
+                  <div className="relative mb-2 sm:mb-4">
+                    <div className="w-full h-20 sm:h-32 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                      <span className="text-2xl sm:text-4xl">{game.icon}</span>
                     </div>
                     {game.isPopular && (
-                      <div className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black text-xs font-bold px-2 py-1 rounded-full animate-pulse">
+                      <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black text-xs font-bold px-1 sm:px-2 py-0.5 sm:py-1 rounded-full animate-pulse">
                         🔥 HOT
                       </div>
                     )}
                   </div>
-                  <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-purple-300 transition-colors">{game.name}</h3>
-                  <div className="flex items-center justify-center mb-2">
-                    <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                    <span className="text-yellow-400 font-semibold text-sm">{game.rating}</span>
+                  <h3 className="text-sm sm:text-xl font-semibold text-white mb-1 sm:mb-2 group-hover:text-purple-300 transition-colors">{game.name}</h3>
+                  <div className="flex items-center justify-center mb-1 sm:mb-2">
+                    <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 mr-1" />
+                    <span className="text-yellow-400 font-semibold text-xs sm:text-sm">{game.rating}</span>
                   </div>
-                  <span className="text-sm text-purple-400 bg-purple-500/20 px-3 py-1 rounded-full">
+                  <span className="text-xs sm:text-sm text-purple-400 bg-purple-500/20 px-2 sm:px-3 py-1 rounded-full">
                     Mulai {formatCurrency(game.topUpItems?.[0]?.price || 0)}
                   </span>
-                  <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-2 rounded-lg font-semibold">
+                  <div className="mt-2 sm:mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-1 sm:py-2 rounded-lg font-semibold text-xs sm:text-base">
                       Top Up Sekarang
                     </div>
                   </div>
@@ -220,33 +238,33 @@ export default function Home() {
               <Crown className="w-4 h-4 ml-2" />
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
             {boostGames.slice(0, 4).map((game, index) => (
               <Link key={game.id} href={`/boost-services/${game.id}`}>
                 <div 
-                  className="gaming-card rounded-xl p-6 text-center hover:scale-105 transition-all duration-300 cursor-pointer group animate-fade-in-up border-orange-500/20 hover:border-orange-400/50"
+                  className="gaming-card rounded-lg sm:rounded-xl p-3 sm:p-6 text-center hover:scale-105 transition-all duration-300 cursor-pointer group animate-fade-in-up border-orange-500/20 hover:border-orange-400/50"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <div className="relative mb-4">
-                    <div className="w-full h-32 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                      <span className="text-4xl">{game.icon}</span>
+                  <div className="relative mb-2 sm:mb-4">
+                    <div className="w-full h-20 sm:h-32 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                      <span className="text-2xl sm:text-4xl">{game.icon}</span>
                     </div>
                     {game.isPopular && (
-                      <div className="absolute -top-2 -right-2 bg-gradient-to-r from-orange-400 to-red-500 text-black text-xs font-bold px-2 py-1 rounded-full animate-pulse">
+                      <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 bg-gradient-to-r from-orange-400 to-red-500 text-black text-xs font-bold px-1 sm:px-2 py-0.5 sm:py-1 rounded-full animate-pulse">
                         🏆 PRO
                       </div>
                     )}
                   </div>
-                  <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-orange-300 transition-colors">{game.name}</h3>
-                  <div className="flex items-center justify-center mb-2">
-                    <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                    <span className="text-yellow-400 font-semibold text-sm">{game.rating}</span>
+                  <h3 className="text-sm sm:text-xl font-semibold text-white mb-1 sm:mb-2 group-hover:text-orange-300 transition-colors">{game.name}</h3>
+                  <div className="flex items-center justify-center mb-1 sm:mb-2">
+                    <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 mr-1" />
+                    <span className="text-yellow-400 font-semibold text-xs sm:text-sm">{game.rating}</span>
                   </div>
-                  <span className="text-sm text-orange-400 bg-orange-500/20 px-3 py-1 rounded-full">
+                  <span className="text-xs sm:text-sm text-orange-400 bg-orange-500/20 px-2 sm:px-3 py-1 rounded-full">
                     Mulai {formatCurrency(game.boostServices?.[0]?.price || 0)}
                   </span>
-                  <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="bg-gradient-to-r from-orange-600 to-red-600 text-white py-2 rounded-lg font-semibold">
+                  <div className="mt-2 sm:mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="bg-gradient-to-r from-orange-600 to-red-600 text-white py-1 sm:py-2 rounded-lg font-semibold text-xs sm:text-base">
                       Boost Sekarang
                     </div>
                   </div>

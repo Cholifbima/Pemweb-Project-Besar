@@ -171,29 +171,29 @@ export default function GameBoostPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       {/* Header */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <Link 
           href="/boost-services"
-          className="inline-flex items-center text-purple-300 hover:text-white transition-colors mb-6"
+          className="inline-flex items-center text-purple-300 hover:text-white transition-colors mb-4 sm:mb-6 text-sm sm:text-base"
         >
-          <ArrowLeft className="w-5 h-5 mr-2" />
+          <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
           Kembali ke Boost Services
         </Link>
 
         {/* Game Info Header */}
-        <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-purple-500/20 p-8 mb-8">
-          <div className="flex items-center space-x-6">
-            <div className="text-6xl animate-bounce">{game.icon}</div>
-            <div className="flex-1">
-              <h1 className="text-4xl font-bold text-white mb-2">{game.name} Boost</h1>
-              <p className="text-purple-300 mb-4">Tingkatkan rank dan skill dengan bantuan pro player</p>
-              <div className="flex items-center space-x-6">
+        <div className="bg-black/20 backdrop-blur-md rounded-xl sm:rounded-2xl border border-purple-500/20 p-4 sm:p-8 mb-4 sm:mb-8">
+          <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
+            <div className="text-4xl sm:text-6xl animate-bounce">{game.icon}</div>
+            <div className="flex-1 text-center sm:text-left">
+              <h1 className="text-2xl sm:text-4xl font-bold text-white mb-2">{game.name} Boost</h1>
+              <p className="text-purple-300 mb-2 sm:mb-4 text-sm sm:text-base">Tingkatkan rank dan skill dengan bantuan pro player</p>
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-6">
                 <div className="flex items-center">
-                  <Star className="w-5 h-5 text-yellow-400 mr-2" />
-                  <span className="text-yellow-400 font-semibold">{game.rating}</span>
+                  <Star className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400 mr-1 sm:mr-2" />
+                  <span className="text-yellow-400 font-semibold text-sm sm:text-base">{game.rating}</span>
                 </div>
-                <span className="text-gray-400">by {game.publisher}</span>
-                <div className="bg-orange-500/20 text-orange-400 px-3 py-1 rounded-full text-sm font-semibold">
+                <span className="text-gray-400 text-sm sm:text-base">by {game.publisher}</span>
+                <div className="bg-orange-500/20 text-orange-400 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold">
                   🏆 Pro Service
                 </div>
               </div>

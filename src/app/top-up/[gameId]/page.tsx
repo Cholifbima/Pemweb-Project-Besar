@@ -151,29 +151,29 @@ export default function GameTopUpPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       {/* Header */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <Link 
           href="/top-up"
-          className="inline-flex items-center text-purple-300 hover:text-white transition-colors mb-6"
+          className="inline-flex items-center text-purple-300 hover:text-white transition-colors mb-4 sm:mb-6 text-sm sm:text-base"
         >
-          <ArrowLeft className="w-5 h-5 mr-2" />
+          <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
           Kembali ke Top Up
         </Link>
 
         {/* Game Info Header */}
-        <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-purple-500/20 p-8 mb-8">
-          <div className="flex items-center space-x-6">
-            <div className="text-6xl animate-bounce">{game.icon}</div>
-            <div className="flex-1">
-              <h1 className="text-4xl font-bold text-white mb-2">{game.name}</h1>
-              <p className="text-purple-300 mb-4">{game.description}</p>
-              <div className="flex items-center space-x-6">
+        <div className="bg-black/20 backdrop-blur-md rounded-xl sm:rounded-2xl border border-purple-500/20 p-4 sm:p-8 mb-4 sm:mb-8">
+          <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
+            <div className="text-4xl sm:text-6xl animate-bounce">{game.icon}</div>
+            <div className="flex-1 text-center sm:text-left">
+              <h1 className="text-2xl sm:text-4xl font-bold text-white mb-2">{game.name}</h1>
+              <p className="text-purple-300 mb-2 sm:mb-4 text-sm sm:text-base">{game.description}</p>
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-6">
                 <div className="flex items-center">
-                  <Star className="w-5 h-5 text-yellow-400 mr-2" />
-                  <span className="text-yellow-400 font-semibold">{game.rating}</span>
+                  <Star className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400 mr-1 sm:mr-2" />
+                  <span className="text-yellow-400 font-semibold text-sm sm:text-base">{game.rating}</span>
                 </div>
-                <span className="text-gray-400">by {game.publisher}</span>
-                <div className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-sm font-semibold">
+                <span className="text-gray-400 text-sm sm:text-base">by {game.publisher}</span>
+                <div className="bg-green-500/20 text-green-400 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold">
                   ✅ Resmi
                 </div>
               </div>
@@ -182,18 +182,18 @@ export default function GameTopUpPage() {
         </div>
 
         {/* Progress Steps */}
-        <div className="mb-8">
-          <div className="flex items-center justify-center space-x-4">
+        <div className="mb-4 sm:mb-8 overflow-x-auto">
+          <div className="flex items-center justify-center space-x-2 sm:space-x-4 min-w-max px-4">
             {[1, 2, 3].map((stepNum) => (
               <div key={stepNum} className="flex items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all duration-300 ${
+                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold transition-all duration-300 ${
                   step >= stepNum 
                     ? 'bg-purple-600 text-white' 
                     : 'bg-gray-700 text-gray-400'
                 }`}>
-                  {step > stepNum ? <CheckCircle className="w-5 h-5" /> : stepNum}
+                  {step > stepNum ? <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" /> : stepNum}
                 </div>
-                <span className={`ml-2 font-medium ${
+                <span className={`ml-1 sm:ml-2 font-medium text-xs sm:text-base ${
                   step >= stepNum ? 'text-white' : 'text-gray-400'
                 }`}>
                   {stepNum === 1 && 'Pilih Paket'}
@@ -201,7 +201,7 @@ export default function GameTopUpPage() {
                   {stepNum === 3 && 'Pembayaran'}
                 </span>
                 {stepNum < 3 && (
-                  <div className={`w-16 h-1 mx-4 rounded transition-all duration-300 ${
+                  <div className={`w-8 sm:w-16 h-1 mx-2 sm:mx-4 rounded transition-all duration-300 ${
                     step > stepNum ? 'bg-purple-600' : 'bg-gray-700'
                   }`} />
                 )}
@@ -210,52 +210,47 @@ export default function GameTopUpPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2">
             {/* Step 1: Select Package */}
             {step === 1 && (
-              <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-purple-500/20 p-6">
-                <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-                  <Gift className="w-6 h-6 text-purple-400 mr-3" />
+              <div className="bg-black/20 backdrop-blur-md rounded-xl sm:rounded-2xl border border-purple-500/20 p-4 sm:p-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6 flex items-center">
+                  <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400 mr-2 sm:mr-3" />
                   Pilih Paket Top Up
                 </h2>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Mobile: 2x2 Grid, Desktop: 2 columns */}
+                <div className="grid grid-cols-2 lg:grid-cols-2 gap-2 sm:gap-4">
                   {game.topUpItems?.map((item) => (
                     <div
                       key={item.id}
                       onClick={() => setSelectedItem(item)}
-                      className={`relative p-4 rounded-xl border cursor-pointer transition-all duration-300 hover:scale-105 ${
+                      className={`relative p-3 sm:p-4 rounded-lg sm:rounded-xl border cursor-pointer transition-all duration-300 hover:scale-105 ${
                         selectedItem?.id === item.id
                           ? 'bg-gradient-to-br from-purple-600/30 to-blue-600/30 border-purple-400 shadow-lg shadow-purple-500/20'
                           : 'bg-gray-800/30 border-gray-600/30 hover:border-purple-500/50'
                       }`}
                     >
                       {item.isPopular && (
-                        <div className="absolute -top-2 left-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-black text-xs font-bold px-2 py-1 rounded-full">
+                        <div className="absolute -top-1 sm:-top-2 left-2 sm:left-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-black text-xs font-bold px-1 sm:px-2 py-0.5 sm:py-1 rounded-full">
                           🔥 POPULER
-                        </div>
-                      )}
-                      
-                      {item.bonus && (
-                        <div className="absolute -top-2 right-4 bg-gradient-to-r from-green-400 to-emerald-500 text-black text-xs font-bold px-2 py-1 rounded-full">
-                          +{item.bonus} BONUS
                         </div>
                       )}
 
                       <div className="text-center">
-                        <div className="text-lg font-bold text-white mb-1">{item.name}</div>
+                        <div className="text-lg sm:text-xl font-bold text-white mb-1 sm:mb-2">{item.name}</div>
                         {item.bonus && (
-                          <div className="text-sm text-green-400 mb-2">
-                            Total: {item.amount + item.bonus} {item.name.split(' ')[1]}
+                          <div className="text-xs sm:text-sm text-green-400 mb-1 sm:mb-2">
+                            +{item.bonus} Bonus!
                           </div>
                         )}
-                        <div className="text-2xl font-bold text-purple-400 mb-3">
+                        <div className="text-base sm:text-lg font-bold text-purple-400 mb-2 sm:mb-3">
                           {formatCurrency(item.price)}
                         </div>
                         {selectedItem?.id === item.id && (
-                          <div className="bg-purple-600 text-white py-1 px-3 rounded-full text-sm font-semibold">
+                          <div className="bg-purple-600 text-white py-1 px-2 sm:px-3 rounded-full text-xs sm:text-sm font-semibold">
                             ✓ Dipilih
                           </div>
                         )}
@@ -267,7 +262,7 @@ export default function GameTopUpPage() {
                 <button
                   onClick={handleNextStep}
                   disabled={!selectedItem}
-                  className="w-full mt-6 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105"
+                  className="w-full mt-4 sm:mt-6 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105"
                 >
                   Lanjut ke Data Akun
                 </button>

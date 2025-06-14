@@ -128,6 +128,35 @@ export default function DashboardPage() {
     }
   }
 
+  const handleAddBalance = async () => {
+    if (!user) return
+    
+    try {
+      // Demo: Add 100,000 IDR to balance
+      const newBalance = user.balance + 100000
+      setUser({ ...user, balance: newBalance })
+      
+      // Show success message
+      const event = new CustomEvent('showToast', {
+        detail: {
+          type: 'success',
+          message: `💰 Saldo berhasil ditambah ${formatCurrency(100000)}! Saldo baru: ${formatCurrency(newBalance)}`
+        }
+      })
+      window.dispatchEvent(event)
+      
+    } catch (error) {
+      console.error('Error adding balance:', error)
+      const event = new CustomEvent('showToast', {
+        detail: {
+          type: 'error',
+          message: 'Gagal menambah saldo'
+        }
+      })
+      window.dispatchEvent(event)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
@@ -229,7 +258,10 @@ export default function DashboardPage() {
               <p className="text-orange-200 text-sm">Boost rank dengan bantuan pro player</p>
             </Link>
             
-            <div className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-xl p-6 text-center transition-all duration-300 transform hover:scale-105 cursor-pointer">
+            <div 
+              onClick={handleAddBalance}
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-xl p-6 text-center transition-all duration-300 transform hover:scale-105 cursor-pointer"
+            >
               <Plus className="w-8 h-8 text-white mx-auto mb-3" />
               <h3 className="text-white font-semibold mb-2">Top Up Saldo</h3>
               <p className="text-green-200 text-sm">Tambah saldo untuk transaksi (Demo)</p>
