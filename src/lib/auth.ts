@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { prisma } from './db';
+import { prisma, createUserSafely } from './db';
 
 // JWT Secret - in production this should be in environment variables
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
@@ -89,26 +89,15 @@ export async function registerUser(userData: {
     // Hash password
     const hashedPassword = await hashPassword(userData.password);
 
-    // Create user with 1 million balance for demo
-    const user = await prisma.user.create({
-      data: {
-        ...userData,
-        password: hashedPassword,
-        balance: 1000000, // 1 juta rupiah untuk demo
-      },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        fullName: true,
-        phoneNumber: true,
-        balance: true,
-        createdAt: true,
-      }
+    // Create user safely with balance field handling
+    const user = await createUserSafely({
+      ...userData,
+      password: hashedPassword,
     });
 
     return { success: true, user };
   } catch (error: any) {
+    console.error('Register user error:', error);
     return { success: false, error: error.message };
   }
 }

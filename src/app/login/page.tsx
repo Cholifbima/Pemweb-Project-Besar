@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
+import { showToast } from '@/lib/toast';
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -26,7 +26,7 @@ export default function LoginPage() {
     setLoading(true);
 
     // Show loading toast
-    const loadingToast = toast.loading('Sedang masuk...');
+    showToast.loading('Sedang masuk...');
 
     try {
       const response = await fetch('/api/auth/login', {
@@ -43,9 +43,8 @@ export default function LoginPage() {
         throw new Error(data.error || 'Login gagal');
       }
 
-      // Dismiss loading toast and show success
-      toast.dismiss(loadingToast);
-      toast.success('Login berhasil! Selamat datang kembali 🎮');
+      // Show success toast
+      showToast.success('Login berhasil! Selamat datang kembali 🎮');
 
       // Small delay to show success message, then redirect
       setTimeout(() => {
@@ -55,9 +54,8 @@ export default function LoginPage() {
       }, 1000);
       
     } catch (error: any) {
-      // Dismiss loading toast and show error
-      toast.dismiss(loadingToast);
-      toast.error(error.message || 'Terjadi kesalahan saat login');
+      // Show error toast
+      showToast.error(error.message || 'Terjadi kesalahan saat login');
     } finally {
       setLoading(false);
     }

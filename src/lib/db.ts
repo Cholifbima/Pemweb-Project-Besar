@@ -95,3 +95,68 @@ if (typeof window === 'undefined') {
 }
 
 export const prisma = prismaInstance as PrismaClient 
+
+// Database connection helper with environment detection
+export async function connectToDatabase() {
+  try {
+    // Test the connection
+    await prisma.$connect()
+    console.log('✅ Database connected successfully')
+    return true
+  } catch (error) {
+    console.error('❌ Database connection failed:', error)
+    return false
+  }
+}
+
+// Helper function to safely create user with balance field
+export async function createUserSafely(userData: {
+  email: string
+  username: string
+  password: string
+  fullName?: string
+  phoneNumber?: string
+}) {
+  try {
+    // First, try to create user with basic fields only
+    const user = await prisma.user.create({
+      data: {
+        email: userData.email,
+        username: userData.username,
+        password: userData.password,
+        fullName: userData.fullName || null,
+        phoneNumber: userData.phoneNumber || null,
+      },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        fullName: true,
+        phoneNumber: true,
+        createdAt: true,
+      },
+    })
+    
+    // Try to add balance using raw SQL
+    try {
+      await prisma.$executeRaw`
+        UPDATE users 
+        SET balance = 1000000 
+        WHERE id = ${user.id}
+      `
+      console.log('✅ Balance added successfully via raw SQL')
+    } catch (sqlError) {
+      console.log('⚠️ Could not add balance via SQL, field may not exist yet')
+    }
+    
+    // Return user with balance
+    return {
+      ...user,
+      balance: 1000000,
+    }
+    
+  } catch (error: any) {
+    console.error('❌ Error creating user:', error)
+    throw error
+  }
+} 

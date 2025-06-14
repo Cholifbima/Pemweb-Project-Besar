@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
+import { showToast } from '@/lib/toast';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -27,20 +27,20 @@ export default function RegisterPage() {
 
   const validateForm = () => {
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Password dan konfirmasi password tidak sama');
+      showToast.error('Password dan konfirmasi password tidak sama');
       return false;
     }
     if (formData.password.length < 6) {
-      toast.error('Password minimal 6 karakter');
+      showToast.error('Password minimal 6 karakter');
       return false;
     }
     if (formData.username.length < 3) {
-      toast.error('Username minimal 3 karakter');
+      showToast.error('Username minimal 3 karakter');
       return false;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      toast.error('Format email tidak valid');
+      showToast.error('Format email tidak valid');
       return false;
     }
     return true;
@@ -56,7 +56,7 @@ export default function RegisterPage() {
     }
 
     // Show loading toast
-    const loadingToast = toast.loading('Sedang membuat akun...');
+    showToast.loading('Sedang membuat akun...');
 
     try {
       const response = await fetch('/api/auth/register', {
@@ -79,9 +79,8 @@ export default function RegisterPage() {
         throw new Error(data.error || 'Registrasi gagal');
       }
 
-      // Dismiss loading toast and show success
-      toast.dismiss(loadingToast);
-      toast.success('🎉 Registrasi berhasil! Saldo demo Rp 1.000.000 telah ditambahkan ke akun Anda');
+      // Show success toast
+      showToast.success('🎉 Registrasi berhasil! Saldo demo Rp 1.000.000 telah ditambahkan ke akun Anda');
 
       // Small delay to show success message, then redirect
       setTimeout(() => {
@@ -91,9 +90,8 @@ export default function RegisterPage() {
       }, 2000);
       
     } catch (error: any) {
-      // Dismiss loading toast and show error
-      toast.dismiss(loadingToast);
-      toast.error(error.message || 'Terjadi kesalahan saat registrasi');
+      // Show error toast
+      showToast.error(error.message || 'Terjadi kesalahan saat registrasi');
     } finally {
       setLoading(false);
     }

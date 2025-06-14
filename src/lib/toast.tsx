@@ -3,6 +3,31 @@ import toast from 'react-hot-toast'
 // Track active toasts to prevent spam
 let activeToasts = new Set<string>()
 
+// Auto-dismiss all toasts when navigating (for Next.js)
+if (typeof window !== 'undefined') {
+  // Listen for route changes
+  const originalPushState = window.history.pushState
+  const originalReplaceState = window.history.replaceState
+  
+  window.history.pushState = function(...args) {
+    toast.dismiss()
+    activeToasts.clear()
+    return originalPushState.apply(this, args)
+  }
+  
+  window.history.replaceState = function(...args) {
+    toast.dismiss()
+    activeToasts.clear()
+    return originalReplaceState.apply(this, args)
+  }
+  
+  // Also listen for popstate (back/forward buttons)
+  window.addEventListener('popstate', () => {
+    toast.dismiss()
+    activeToasts.clear()
+  })
+}
+
 // Custom toast component with close button
 const ToastWithClose = ({ 
   message, 
@@ -85,13 +110,13 @@ export const showToast = {
       (t) => <ToastWithClose message={message} toastId={t.id} type="success" />,
       {
         id: message,
-        duration: 3000,
+        duration: 2000,
       }
     )
     
     setTimeout(() => {
       activeToasts.delete(message)
-    }, 3000)
+    }, 2000)
     
     return toastId
   },
@@ -107,13 +132,13 @@ export const showToast = {
       (t) => <ToastWithClose message={message} toastId={t.id} type="error" />,
       {
         id: message,
-        duration: 5000,
+        duration: 3000,
       }
     )
     
     setTimeout(() => {
       activeToasts.delete(message)
-    }, 5000)
+    }, 3000)
     
     return toastId
   },
@@ -146,13 +171,13 @@ export const showToast = {
       (t) => <ToastWithClose message={message} toastId={t.id} type="default" />,
       {
         id: message,
-        duration: 4000,
+        duration: 2500,
       }
     )
     
     setTimeout(() => {
       activeToasts.delete(message)
-    }, 4000)
+    }, 2500)
     
     return toastId
   },
