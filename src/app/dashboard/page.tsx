@@ -426,8 +426,8 @@ export default function DashboardPage() {
               status: selectedTransaction.status
             },
             balance: {
-              before: user?.balance || 0,
-              after: (user?.balance || 0) + selectedTransaction.amount,
+              before: (user?.balance || 0) + selectedTransaction.amount,
+              after: user?.balance || 0,
               spent: selectedTransaction.amount
             }
           }}
