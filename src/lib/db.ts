@@ -26,16 +26,14 @@ function getDatabaseUrl(): string {
     const database = process.env.AZURE_SQL_DATABASE;
     const port = process.env.AZURE_SQL_PORT || '1433';
     
-    // Format username untuk Azure SQL Database
-    const serverName = server.includes('.') ? server.split('.')[0] : server;
-    const azureUsername = username.includes('@') ? username : `${username}@${serverName}`;
-    
-    const connectionString = `sqlserver://${server}:${port};database=${database};user=${azureUsername};password=${password};encrypt=true;trustServerCertificate=false;connectionTimeout=30;`;
+    // Format connection string untuk Azure SQL Database
+    const connectionString = `sqlserver://${server}:${port};database=${database};user=${username};password=${password};encrypt=true;trustServerCertificate=false;connectionTimeout=30;`;
     
     console.log('🔗 Using Azure SQL connection (built from env vars)');
     console.log('Server:', server);
     console.log('Database:', database);
-    console.log('Username:', azureUsername);
+    console.log('Username:', username);
+    console.log('Connection String:', connectionString.replace(password, '***'));
     
     return connectionString;
   }
@@ -46,9 +44,15 @@ function getDatabaseUrl(): string {
     return process.env.DATABASE_URL;
   }
   
-  // Priority 3: Development fallback - use in-memory database for testing
-  console.log('⚠️ No database configuration found, using fallback');
-  return "sqlserver://localhost:1433;database=tempdb;integratedSecurity=true;trustServerCertificate=true;";
+  // Priority 3: Local development dengan SQLite
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔧 Using development SQLite database');
+    return "file:./dev.db";
+  }
+  
+  // Priority 4: Build-time fallback
+  console.log('⚠️ Using build-time fallback - this should not happen');
+  return "file:./fallback.db";
 }
 
 function createPrismaClient() {
