@@ -29,7 +29,8 @@ model User {
   balance       Float    @default(1000000) // Demo balance 1 juta rupiah
   
   // Relations
-  orders      Order[]
+  orders        Order[]
+  transactions  Transaction[]
   
   @@map("users")
 }
@@ -51,6 +52,26 @@ model Order {
   user        User     @relation(fields: [userId], references: [id])
   
   @@map("orders")
+}
+
+model Transaction {
+  id          String   @id // Custom transaction ID like TRX123456789ABCDE
+  userId      Int
+  type        String   // "topup" or "boost"
+  gameId      String
+  itemId      String?  // For top-up items
+  serviceId   String?  // For boost services
+  amount      Float
+  userGameId  String   // User's game ID
+  email       String   // Email for transaction
+  status      String   @default("pending") // pending, completed, failed
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  user        User     @relation(fields: [userId], references: [id])
+  
+  @@map("transactions")
 }
 
 model Game {

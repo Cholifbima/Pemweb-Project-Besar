@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { User, Wallet, Trophy, ShoppingBag, Star, Clock, CheckCircle, AlertCircle } from 'lucide-react'
+import Link from 'next/link'
+import { User, Wallet, Trophy, ShoppingBag, Star, Clock, CheckCircle, AlertCircle, CreditCard, GamepadIcon, Crown, Plus, History } from 'lucide-react'
 
 interface UserData {
   id: number
@@ -16,26 +17,28 @@ interface UserData {
   createdAt: string
 }
 
-interface Order {
-  id: number
+interface Transaction {
+  id: string
+  type: string
   gameId: string
-  gameName: string
-  serviceType: string
-  packageName: string
-  price: number
+  itemId: string | null
+  serviceId: string | null
+  amount: number
+  userGameId: string
+  email: string
   status: string
   createdAt: string
 }
 
 export default function DashboardPage() {
   const [user, setUser] = useState<UserData | null>(null)
-  const [orders, setOrders] = useState<Order[]>([])
+  const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
     fetchUserData()
-    fetchOrders()
+    fetchTransactions()
   }, [])
 
   const fetchUserData = async () => {
@@ -53,15 +56,15 @@ export default function DashboardPage() {
     }
   }
 
-  const fetchOrders = async () => {
+  const fetchTransactions = async () => {
     try {
-      const response = await fetch('/api/orders')
+      const response = await fetch('/api/transactions/history')
       if (response.ok) {
         const data = await response.json()
-        setOrders(data)
+        setTransactions(data.transactions || [])
       }
     } catch (error) {
-      console.error('Error fetching orders:', error)
+      console.error('Error fetching transactions:', error)
     } finally {
       setLoading(false)
     }
@@ -103,6 +106,28 @@ export default function DashboardPage() {
     }
   }
 
+  const getTransactionTypeIcon = (type: string) => {
+    switch (type) {
+      case 'topup':
+        return <GamepadIcon className="w-5 h-5 text-purple-400" />
+      case 'boost':
+        return <Crown className="w-5 h-5 text-orange-400" />
+      default:
+        return <CreditCard className="w-5 h-5 text-blue-400" />
+    }
+  }
+
+  const getTransactionTypeName = (type: string) => {
+    switch (type) {
+      case 'topup':
+        return 'Top Up'
+      case 'boost':
+        return 'Joki/Boost'
+      default:
+        return type
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
@@ -139,6 +164,7 @@ export default function DashboardPage() {
             <div>
               <p className="text-gray-400 text-sm mb-1">Saldo Akun</p>
               <p className="text-2xl font-bold text-white">{formatCurrency(user.balance)}</p>
+              <p className="text-xs text-gray-500 mt-1">Saldo demo untuk testing</p>
             </div>
           </div>
 
@@ -155,16 +181,16 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Orders Count Card */}
+          {/* Transactions Count Card */}
           <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-purple-500/20 p-6 hover:border-purple-500/40 transition-all duration-300">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-blue-500/20 rounded-xl">
-                <Trophy className="w-6 h-6 text-blue-400" />
+                <History className="w-6 h-6 text-blue-400" />
               </div>
             </div>
             <div>
-              <p className="text-gray-400 text-sm mb-1">Total Pesanan</p>
-              <p className="text-2xl font-bold text-white">{orders.length}</p>
+              <p className="text-gray-400 text-sm mb-1">Total Transaksi</p>
+              <p className="text-2xl font-bold text-white">{transactions.length}</p>
             </div>
           </div>
 
@@ -187,8 +213,33 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Profile Info */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        {/* Quick Actions */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-white mb-4">Aksi Cepat</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Link href="/top-up" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl p-6 text-center transition-all duration-300 transform hover:scale-105">
+              <GamepadIcon className="w-8 h-8 text-white mx-auto mb-3" />
+              <h3 className="text-white font-semibold mb-2">Top Up Game</h3>
+              <p className="text-purple-200 text-sm">Isi diamond, UC, dan item game lainnya</p>
+            </Link>
+            
+            <Link href="/boost-services" className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 rounded-xl p-6 text-center transition-all duration-300 transform hover:scale-105">
+              <Crown className="w-8 h-8 text-white mx-auto mb-3" />
+              <h3 className="text-white font-semibold mb-2">Joki Services</h3>
+              <p className="text-orange-200 text-sm">Boost rank dengan bantuan pro player</p>
+            </Link>
+            
+            <div className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-xl p-6 text-center transition-all duration-300 transform hover:scale-105 cursor-pointer">
+              <Plus className="w-8 h-8 text-white mx-auto mb-3" />
+              <h3 className="text-white font-semibold mb-2">Top Up Saldo</h3>
+              <p className="text-green-200 text-sm">Tambah saldo untuk transaksi (Demo)</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Profile Info & Transaction History */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Profile Info */}
           <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-purple-500/20 p-6">
             <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
               <User className="w-6 h-6 text-purple-400 mr-3" />
@@ -208,98 +259,73 @@ export default function DashboardPage() {
                 <p className="text-white font-medium">{user.fullName || 'Belum diisi'}</p>
               </div>
               <div>
-                <label className="text-gray-400 text-sm">No. Telepon</label>
+                <label className="text-gray-400 text-sm">Nomor HP</label>
                 <p className="text-white font-medium">{user.phoneNumber || 'Belum diisi'}</p>
+              </div>
+              <div>
+                <label className="text-gray-400 text-sm">Bergabung</label>
+                <p className="text-white font-medium">
+                  {new Date(user.createdAt).toLocaleDateString('id-ID', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Quick Actions */}
+          {/* Transaction History */}
           <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-purple-500/20 p-6">
-            <h2 className="text-2xl font-bold text-white mb-6">Aksi Cepat</h2>
-            <div className="grid grid-cols-2 gap-4">
-              <button
-                onClick={() => router.push('/top-up')}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 text-center"
-              >
-                <ShoppingBag className="w-6 h-6 mx-auto mb-2" />
-                Top Up
-              </button>
-              <button
-                onClick={() => router.push('/boost-services')}
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 text-center"
-              >
-                <Trophy className="w-6 h-6 mx-auto mb-2" />
-                Joki Rank
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Recent Orders */}
-        <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-purple-500/20 p-6">
-          <h2 className="text-2xl font-bold text-white mb-6">Riwayat Pesanan Terbaru</h2>
-          {orders.length === 0 ? (
-            <div className="text-center py-12">
-              <ShoppingBag className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-400">Belum ada pesanan</p>
-              <p className="text-gray-500 text-sm">Mulai dengan melakukan top up atau joki rank!</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {orders.slice(0, 5).map((order) => (
-                <div key={order.id} className="bg-black/30 rounded-xl p-4 border border-purple-500/10">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        {getStatusIcon(order.status)}
-                        <span className="text-white font-medium">{order.gameName}</span>
-                        <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-1 rounded-full">
-                          {order.serviceType === 'topup' ? 'Top Up' : 'Joki'}
-                        </span>
+            <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
+              <History className="w-6 h-6 text-blue-400 mr-3" />
+              Riwayat Transaksi
+            </h2>
+            
+            {transactions.length === 0 ? (
+              <div className="text-center py-8">
+                <CreditCard className="w-12 h-12 text-gray-500 mx-auto mb-4" />
+                <p className="text-gray-400 mb-4">Belum ada transaksi</p>
+                <Link href="/top-up" className="text-purple-400 hover:text-white transition-colors">
+                  Mulai transaksi pertama Anda →
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {transactions.slice(0, 10).map((transaction) => (
+                  <div key={transaction.id} className="bg-gray-800/30 rounded-lg p-4 border border-gray-600/30">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center">
+                        {getTransactionTypeIcon(transaction.type)}
+                        <div className="ml-3">
+                          <p className="text-white font-medium">{getTransactionTypeName(transaction.type)}</p>
+                          <p className="text-gray-400 text-sm">ID: {transaction.id}</p>
+                        </div>
                       </div>
-                      <p className="text-gray-400 text-sm">{order.packageName}</p>
-                      <p className="text-gray-500 text-xs">
-                        {new Date(order.createdAt).toLocaleDateString('id-ID', {
-                          day: '2-digit',
-                          month: 'long',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </p>
+                      <div className="text-right">
+                        <p className="text-white font-semibold">{formatCurrency(transaction.amount)}</p>
+                        <div className="flex items-center">
+                          {getStatusIcon(transaction.status)}
+                          <span className="text-sm text-gray-400 ml-1">{getStatusText(transaction.status)}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-white font-bold">{formatCurrency(order.price)}</p>
-                      <p className={`text-sm ${
-                        order.status === 'completed' ? 'text-green-400' :
-                        order.status === 'processing' ? 'text-yellow-400' :
-                        order.status === 'pending' ? 'text-orange-400' :
-                        'text-red-400'
-                      }`}>
-                        {getStatusText(order.status)}
-                      </p>
+                    <div className="text-xs text-gray-500">
+                      <p>Game: {transaction.gameId.toUpperCase()}</p>
+                      <p>User ID: {transaction.userGameId}</p>
+                      <p>{new Date(transaction.createdAt).toLocaleString('id-ID')}</p>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Demo Notice */}
-        <div className="mt-8 bg-gradient-to-r from-green-500/20 to-blue-500/20 border border-green-500/30 rounded-2xl p-6">
-          <div className="flex items-start space-x-4">
-            <div className="p-2 bg-green-500/20 rounded-xl">
-              <Star className="w-6 h-6 text-green-400" />
-            </div>
-            <div>
-              <h3 className="text-white font-bold text-lg mb-2">Mode Demo Aktif</h3>
-              <p className="text-gray-300 text-sm">
-                Akun Anda telah dilengkapi dengan saldo demo sebesar <strong>Rp 1.000.000</strong> untuk keperluan demonstrasi. 
-                Semua transaksi bersifat simulasi dan tidak menggunakan uang sungguhan.
-              </p>
-            </div>
+                ))}
+                
+                {transactions.length > 10 && (
+                  <div className="text-center pt-4">
+                    <p className="text-gray-400 text-sm">Menampilkan 10 transaksi terbaru</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

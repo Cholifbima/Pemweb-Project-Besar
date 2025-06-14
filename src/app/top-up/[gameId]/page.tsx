@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ArrowLeft, Star, Shield, Zap, CreditCard, User, Smartphone, Mail, CheckCircle, AlertCircle, Crown, Gift } from 'lucide-react'
 import { getGameById, TopUpItem } from '@/data/games'
 import { showToast } from '@/lib/toast'
+import Invoice from '@/components/Invoice'
 
 export default function GameTopUpPage() {
   const params = useParams()
@@ -22,6 +23,8 @@ export default function GameTopUpPage() {
   })
   const [loading, setLoading] = useState(false)
   const [step, setStep] = useState(1) // 1: Select Item, 2: Fill Data, 3: Payment
+  const [showInvoice, setShowInvoice] = useState(false)
+  const [invoiceData, setInvoiceData] = useState<any>(null)
 
   useEffect(() => {
     if (!game) {
@@ -57,11 +60,40 @@ export default function GameTopUpPage() {
     showToast.loading('Memproses pembelian...')
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      const response = await fetch('/api/transactions/mock', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'topup',
+          gameId: gameId,
+          itemId: selectedItem.id,
+          amount: selectedItem.price,
+          userGameId: formData.userId,
+          email: formData.email,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          showToast.error('Silakan login terlebih dahulu')
+          router.push('/login')
+          return
+        }
+        throw new Error(data.error || 'Terjadi kesalahan')
+      }
+
+      // Show success message with transaction details
+      showToast.success(`🎉 Top up ${selectedItem.name} berhasil! ID Transaksi: ${data.transaction.id}`)
       
-      // Simulate success
-      showToast.success(`🎉 Top up ${selectedItem.name} berhasil! Diamond akan masuk dalam 1-5 menit.`)
+      // Show invoice
+      if (data.invoice) {
+        setInvoiceData(data.invoice)
+        setShowInvoice(true)
+      }
       
       // Reset form
       setFormData({
@@ -72,8 +104,9 @@ export default function GameTopUpPage() {
       })
       setStep(1)
       
-    } catch (error) {
-      showToast.error('Terjadi kesalahan saat memproses pembelian')
+    } catch (error: any) {
+      console.error('Purchase error:', error)
+      showToast.error(error.message || 'Terjadi kesalahan saat memproses pembelian')
     } finally {
       setLoading(false)
     }
@@ -462,6 +495,15 @@ export default function GameTopUpPage() {
           </div>
         </div>
       </div>
+
+      {/* Invoice Modal */}
+      {showInvoice && invoiceData && (
+        <Invoice
+          invoice={invoiceData}
+          isOpen={showInvoice}
+          onClose={() => setShowInvoice(false)}
+        />
+      )}
     </div>
   )
 } 

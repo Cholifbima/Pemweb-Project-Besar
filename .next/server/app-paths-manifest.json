@@ -1,3 +1,6 @@
 {
-  "/register/page": "app/register/page.js"
+  "/page": "app/page.js",
+  "/api/transactions/route": "app/api/transactions/route.js",
+  "/top-up/[gameId]/page": "app/top-up/[gameId]/page.js",
+  "/login/page": "app/login/page.js"
 }

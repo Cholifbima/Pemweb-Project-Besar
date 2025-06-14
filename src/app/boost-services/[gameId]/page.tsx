@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ArrowLeft, Star, Shield, Zap, CreditCard, User, Smartphone, Mail, CheckCircle, AlertCircle, Crown, Trophy, Target, Clock, Users } from 'lucide-react'
 import { getGameById, BoostService } from '@/data/games'
 import { showToast } from '@/lib/toast'
+import Invoice from '@/components/Invoice'
 
 export default function GameBoostPage() {
   const params = useParams()
@@ -28,6 +29,8 @@ export default function GameBoostPage() {
   })
   const [loading, setLoading] = useState(false)
   const [step, setStep] = useState(1) // 1: Select Service, 2: Fill Data, 3: Payment
+  const [showInvoice, setShowInvoice] = useState(false)
+  const [invoiceData, setInvoiceData] = useState<any>(null)
 
   useEffect(() => {
     if (!game || !game.hasBoost) {
@@ -63,11 +66,40 @@ export default function GameBoostPage() {
     showToast.loading('Memproses order joki...')
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      const response = await fetch('/api/transactions/mock', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'boost',
+          gameId: gameId,
+          serviceId: selectedService.id,
+          amount: selectedService.price,
+          userGameId: formData.userId,
+          email: formData.email,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          showToast.error('Silakan login terlebih dahulu')
+          router.push('/login')
+          return
+        }
+        throw new Error(data.error || 'Terjadi kesalahan')
+      }
+
+      // Show success message with transaction details
+      showToast.success(`🎉 Order ${selectedService.name} berhasil! ID Transaksi: ${data.transaction.id}`)
       
-      // Simulate success
-      showToast.success(`🎉 Order ${selectedService.name} berhasil! Tim joki akan segera memulai dalam 1-2 jam.`)
+      // Show invoice
+      if (data.invoice) {
+        setInvoiceData(data.invoice)
+        setShowInvoice(true)
+      }
       
       // Reset form
       setFormData({
@@ -84,8 +116,9 @@ export default function GameBoostPage() {
       })
       setStep(1)
       
-    } catch (error) {
-      showToast.error('Terjadi kesalahan saat memproses order')
+    } catch (error: any) {
+      console.error('Purchase error:', error)
+      showToast.error(error.message || 'Terjadi kesalahan saat memproses order')
     } finally {
       setLoading(false)
     }
@@ -608,6 +641,14 @@ export default function GameBoostPage() {
           </div>
         </div>
       </div>
+
+      {showInvoice && invoiceData && (
+        <Invoice
+          invoice={invoiceData}
+          isOpen={showInvoice}
+          onClose={() => setShowInvoice(false)}
+        />
+      )}
     </div>
   )
 } 
