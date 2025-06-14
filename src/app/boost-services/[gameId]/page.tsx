@@ -13,7 +13,7 @@ export default function GameBoostPage() {
   const params = useParams()
   const router = useRouter()
   const gameId = params.gameId as string
-  const { updateBalance } = useUser()
+  const { updateBalance, refreshUser } = useUser()
   
   const [game, setGame] = useState(getGameById(gameId))
   const [selectedService, setSelectedService] = useState<BoostService | null>(null)
@@ -101,6 +101,9 @@ export default function GameBoostPage() {
       if (data.transaction && data.transaction.newBalance !== undefined) {
         updateBalance(data.transaction.newBalance)
       }
+      
+      // Refresh user data from server to ensure consistency
+      await refreshUser()
       
       // Show invoice
       if (data.invoice) {

@@ -132,18 +132,34 @@ export default function DashboardPage() {
     }
     
     try {
-      // Demo: Add 100,000 IDR to balance
-      const newBalance = user.balance + 100000
-      updateBalance(newBalance)
+      // Call API to add balance to database
+      const response = await fetch('/api/users/add-balance', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: 100000 // Add 100,000 IDR
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Gagal menambah saldo')
+      }
+
+      // Update balance in context with the new balance from server
+      updateBalance(data.newBalance)
       
-      console.log('Balance updated:', newBalance) // Debug log
+      console.log('Balance updated:', data.newBalance) // Debug log
       
-      // Show success message using showToast directly
-      showToast.success(`💰 Saldo berhasil ditambah ${formatCurrency(100000)}! Saldo baru: ${formatCurrency(newBalance)}`)
+      // Show success message
+      showToast.success(`💰 Saldo berhasil ditambah ${formatCurrency(100000)}! Saldo baru: ${formatCurrency(data.newBalance)}`)
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding balance:', error)
-      showToast.error('Gagal menambah saldo')
+      showToast.error(error.message || 'Gagal menambah saldo')
     }
   }
 

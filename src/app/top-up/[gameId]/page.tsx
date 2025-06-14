@@ -13,7 +13,7 @@ export default function GameTopUpPage() {
   const params = useParams()
   const router = useRouter()
   const gameId = params.gameId as string
-  const { updateBalance } = useUser()
+  const { updateBalance, refreshUser } = useUser()
   
   const [game, setGame] = useState(getGameById(gameId))
   const [selectedItem, setSelectedItem] = useState<TopUpItem | null>(null)
@@ -99,6 +99,9 @@ export default function GameTopUpPage() {
       if (data.transaction && data.transaction.newBalance !== undefined) {
         updateBalance(data.transaction.newBalance)
       }
+      
+      // Refresh user data from server to ensure consistency
+      await refreshUser()
       
       // Show invoice
       if (data.invoice) {
