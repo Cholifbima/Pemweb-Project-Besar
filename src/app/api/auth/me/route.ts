@@ -2,14 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
-    // Skip database operations during build
-    if (process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL) {
-      return NextResponse.json(
-        { error: 'Database not configured' },
-        { status: 503 }
-      );
-    }
-
     // Dynamic import to avoid build-time issues
     const { getUserFromToken } = await import('@/lib/auth');
 

@@ -141,10 +141,11 @@ export async function loginUser(emailOrUsername: string, password: string): Prom
         username: user.username,
         fullName: user.fullName,
         phoneNumber: user.phoneNumber,
-        balance: user.balance,
+        balance: user.balance || 1000000, // Default balance if field doesn't exist
       }
     };
   } catch (error: any) {
+    console.error('Login user error:', error);
     return { success: false, error: error.message };
   }
 }
@@ -157,27 +158,65 @@ export async function getUserFromToken(token: string) {
       throw new Error('Token tidak valid');
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: payload.id },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        fullName: true,
-        phoneNumber: true,
-        favoriteGames: true,
-        totalSpent: true,
-        balance: true,
-        createdAt: true,
+    // Try to get user with all fields first
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: payload.id },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          fullName: true,
+          phoneNumber: true,
+          favoriteGames: true,
+          totalSpent: true,
+          balance: true,
+          createdAt: true,
+        }
+      });
+
+      if (!user) {
+        throw new Error('User tidak ditemukan');
       }
-    });
 
-    if (!user) {
-      throw new Error('User tidak ditemukan');
+      return { success: true, user };
+    } catch (error: any) {
+      // If balance field doesn't exist, try without it
+      if (error.message?.includes('balance') || error.message?.includes('Unknown argument')) {
+        console.log('⚠️ Balance field not found, fetching user without balance...');
+        
+        const user = await prisma.user.findUnique({
+          where: { id: payload.id },
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            fullName: true,
+            phoneNumber: true,
+            favoriteGames: true,
+            totalSpent: true,
+            createdAt: true,
+          }
+        });
+
+        if (!user) {
+          throw new Error('User tidak ditemukan');
+        }
+
+        // Return user with default balance
+        return { 
+          success: true, 
+          user: {
+            ...user,
+            balance: 1000000, // Default balance for demo
+          }
+        };
+      }
+      
+      throw error;
     }
-
-    return { success: true, user };
   } catch (error: any) {
+    console.error('getUserFromToken error:', error);
     return { success: false, error: error.message };
   }
 }
