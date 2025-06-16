@@ -4,7 +4,7 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-// Build DATABASE_URL from environment variables
+// Build DATABASE_URL from environment variables or use Azure connection string
 function getDatabaseUrl(): string {
   // Log environment untuk debugging (hanya di server)
   if (typeof window === 'undefined') {
@@ -18,7 +18,13 @@ function getDatabaseUrl(): string {
     });
   }
 
-  // Priority 1: Azure deployment dengan individual variables (UTAMA untuk production)
+  // Priority 1: Direct DATABASE_URL (most reliable for Azure App Service)
+  if (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('file:')) {
+    console.log('✅ Using DATABASE_URL from Azure App Service');
+    return process.env.DATABASE_URL;
+  }
+
+  // Priority 2: Build from individual Azure SQL variables
   if (process.env.AZURE_SQL_SERVER && process.env.AZURE_SQL_USERNAME && process.env.AZURE_SQL_PASSWORD && process.env.AZURE_SQL_DATABASE) {
     const server = process.env.AZURE_SQL_SERVER;
     const username = process.env.AZURE_SQL_USERNAME;
@@ -26,44 +32,18 @@ function getDatabaseUrl(): string {
     const database = process.env.AZURE_SQL_DATABASE;
     const port = process.env.AZURE_SQL_PORT || '1433';
     
-    // Debug: Log all values to see what we're working with
-    console.log('🔍 Azure SQL Environment Values:');
+    console.log('🔧 Building Azure SQL connection from environment variables');
     console.log('- Server:', server);
-    console.log('- Username:', username);
     console.log('- Database:', database);
+    console.log('- Username:', username);
     console.log('- Port:', port);
-    console.log('- Password length:', password?.length || 0);
     
-    // Format connection string untuk Azure SQL Database - try different formats
-    // Try the format that works with Azure SQL Database
-    let connectionString;
+    // Use the correct format for Azure SQL Database with Prisma
+    // Format: sqlserver://server.database.windows.net:1433;database=mydb;user=myuser@myserver;password=mypassword;encrypt=true;trustServerCertificate=false;connectionTimeout=30;
+    const connectionString = `sqlserver://${server}:${port};database=${database};user=${username};password=${password};encrypt=true;trustServerCertificate=false;connectionTimeout=30;`;
     
-    // Format 1: Try with server@username format (common for Azure SQL)
-    if (username.includes('@')) {
-      connectionString = `sqlserver://${server}:${port};database=${database};user=${username};password=${password};encrypt=true;trustServerCertificate=false;connectionTimeout=30;loginTimeout=30;requestTimeout=30;`;
-    } else {
-      // Format 2: Add server name to username (Azure SQL Database format)
-      const serverName = server.split('.')[0]; // Extract server name from FQDN
-      const azureUsername = `${username}@${serverName}`;
-      connectionString = `sqlserver://${server}:${port};database=${database};user=${azureUsername};password=${password};encrypt=true;trustServerCertificate=false;connectionTimeout=30;loginTimeout=30;requestTimeout=30;`;
-      console.log('🔧 Using Azure SQL format with username:', azureUsername);
-    }
-    
-    console.log('🔗 Using Azure SQL connection (built from env vars)');
-    console.log('Server:', server);
-    console.log('Database:', database);
-    console.log('Username:', username);
-    console.log('Port:', port);
-    console.log('Connection String (masked):', connectionString.replace(password, '***'));
-    
+    console.log('🔗 Azure SQL Connection String (masked):', connectionString.replace(password, '***'));
     return connectionString;
-  }
-
-  // Priority 2: Fallback ke DATABASE_URL jika ada
-  if (process.env.DATABASE_URL) {
-    console.log('✅ Using DATABASE_URL from environment');
-    console.log('DATABASE_URL (masked):', process.env.DATABASE_URL.replace(/password=[^;]+/, 'password=***'));
-    return process.env.DATABASE_URL;
   }
   
   // Priority 3: Local development dengan SQLite
@@ -73,7 +53,7 @@ function getDatabaseUrl(): string {
   }
   
   // Priority 4: Build-time fallback
-  console.log('⚠️ Using build-time fallback - this should not happen');
+  console.log('⚠️ Using build-time fallback');
   return "file:./fallback.db";
 }
 
