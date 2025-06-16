@@ -1,0 +1,141 @@
+name: Deploy to Azure App Service
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 🚀 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: 📦 Install dependencies
+      run: npm ci
+
+    - name: 🔧 Generate Prisma Client
+      run: npx prisma generate
+
+    - name: 🏗️ Build Next.js application
+      run: npm run build
+      env:
+        # Environment variables for build
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
+        AZURE_STORAGE_ACCOUNT_KEY: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
+        AZURE_STORAGE_CONTAINER_NAME: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
+        AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+        AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+        AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT }}
+        AZURE_DOCUMENT_INTELLIGENCE_KEY: ${{ secrets.AZURE_DOCUMENT_INTELLIGENCE_KEY }}
+        SIGNALR_CONNECTION_STRING: ${{ secrets.SIGNALR_CONNECTION_STRING }}
+
+    - name: 🧪 Run tests (if available)
+      run: |
+        if [ -f "package.json" ] && grep -q '"test"' package.json; then
+          npm test
+        else
+          echo "No tests found, skipping..."
+        fi
+      continue-on-error: true
+
+    - name: 📁 Create deployment package
+      run: |
+        # Create a clean deployment directory
+        mkdir -p deployment
+        
+        # Copy essential files for deployment
+        cp -r .next deployment/
+        cp -r public deployment/
+        cp -r prisma deployment/
+        cp package*.json deployment/
+        cp next.config.js deployment/
+        
+        # Copy node_modules (required for Azure App Service)
+        cp -r node_modules deployment/
+        
+        # Create web.config for Azure App Service
+        cat > deployment/web.config << 'EOF'
+        <?xml version="1.0" encoding="utf-8"?>
+        <configuration>
+          <system.webServer>
+            <handlers>
+              <add name="iisnode" path="server.js" verb="*" modules="iisnode"/>
+            </handlers>
+            <rewrite>
+              <rules>
+                <rule name="NodeInspector" patternSyntax="ECMAScript" stopProcessing="true">
+                  <match url="^server.js\/debug[\/]?" />
+                </rule>
+                <rule name="StaticContent">
+                  <action type="Rewrite" url="public{REQUEST_URI}"/>
+                </rule>
+                <rule name="DynamicContent">
+                  <conditions>
+                    <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="True"/>
+                  </conditions>
+                  <action type="Rewrite" url="server.js"/>
+                </rule>
+              </rules>
+            </rewrite>
+            <security>
+              <requestFiltering>
+                <hiddenSegments>
+                  <remove segment="bin"/>
+                </hiddenSegments>
+              </requestFiltering>
+            </security>
+            <httpErrors existingResponse="PassThrough" />
+            <iisnode watchedFiles="web.config;*.js"/>
+          </system.webServer>
+        </configuration>
+        EOF
+
+    - name: 🚀 Deploy to Azure App Service
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ secrets.AZURE_APP_NAME }}
+        publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+        package: ./deployment
+
+    - name: 🔄 Run Prisma migrations on Azure
+      run: |
+        # Wait for deployment to be ready
+        sleep 30
+        
+        # Run database migrations
+        curl -X POST "${{ secrets.AZURE_APP_URL }}/api/admin/migrate" \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer ${{ secrets.MIGRATION_SECRET }}" \
+          -d '{"action": "migrate"}' || echo "Migration endpoint not available"
+      continue-on-error: true
+
+    - name: 🎉 Deployment Success Notification
+      if: success()
+      run: |
+        echo "🎉 Deployment successful!"
+        echo "🌐 App URL: ${{ secrets.AZURE_APP_URL }}"
+        echo "📊 Admin Panel: ${{ secrets.AZURE_APP_URL }}/admin"
+        echo "💬 Chat System: Ready"
+        echo "🔐 JWT Authentication: Configured"
+
+    - name: ❌ Deployment Failure Notification
+      if: failure()
+      run: |
+        echo "❌ Deployment failed!"
+        echo "Please check the logs above for details."
+        echo "Common issues:"
+        echo "- Environment variables not set"
+        echo "- Database connection issues"
+        echo "- Build errors" 

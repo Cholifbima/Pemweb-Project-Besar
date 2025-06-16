@@ -61,19 +61,23 @@ async function startServer() {
     await setupApplication()
     
     const dev = process.env.NODE_ENV !== 'production'
-    const port = process.env.PORT || 8080
+    const hostname = process.env.HOSTNAME || 'localhost'
+    const port = process.env.PORT || 3000
     
     console.log(`🌐 Environment: ${process.env.NODE_ENV}`)
     console.log(`🚀 Starting server on port ${port}`)
     
-    const app = next({ dev })
+    const app = next({ dev, hostname, port })
     const handle = app.getRequestHandler()
     
     await app.prepare()
     
-    const server = createServer(async (req, res) => {
+    createServer(async (req, res) => {
       try {
         const parsedUrl = parse(req.url, true)
+        const { pathname, query } = parsedUrl
+
+        // Handle Next.js routing
         await handle(req, res, parsedUrl)
       } catch (err) {
         console.error('Error occurred handling', req.url, err)
@@ -81,12 +85,15 @@ async function startServer() {
         res.end('internal server error')
       }
     })
-    
-    server.listen(port, (err) => {
-      if (err) throw err
-      console.log(`✅ Server ready on http://localhost:${port}`)
-      console.log(`🔗 Access your application at: http://localhost:${port}`)
-    })
+      .once('error', (err) => {
+        console.error(err)
+        process.exit(1)
+      })
+      .listen(port, () => {
+        console.log(`✅ Server ready on http://${hostname}:${port}`)
+        console.log(`🔗 Access your application at: http://${hostname}:${port}`)
+        console.log(`✅ DoaIbu Store Server Started Successfully`)
+      })
     
   } catch (error) {
     console.error('❌ Failed to start server:', error)
