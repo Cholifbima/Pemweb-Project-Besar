@@ -98,200 +98,196 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center px-4 py-8">
-      <div className="max-w-md w-full">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center space-x-2 mb-6">
-            <span className="text-3xl">🎮</span>
-            <span className="text-2xl font-bold text-white">DoaIbu Store</span>
-          </Link>
-          <h1 className="text-3xl font-bold text-white mb-2">Buat Akun Baru</h1>
-          <p className="text-gray-300 mb-3">Bergabung dengan komunitas gamer!</p>
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 text-left">
-            <h3 className="text-blue-400 font-semibold mb-2 flex items-center">
-              <span className="mr-2">🎁</span>
-              Bonus Pendaftaran
-            </h3>
-            <ul className="text-sm text-gray-300 space-y-1">
-              <li className="flex items-center">
-                <span className="text-green-400 mr-2">✓</span>
-                Saldo demo Rp 1.000.000 gratis
-              </li>
-              <li className="flex items-center">
-                <span className="text-green-400 mr-2">✓</span>
-                Invoice otomatis dikirim ke email
-              </li>
-              <li className="flex items-center">
-                <span className="text-green-400 mr-2">✓</span>
-                Akses ke semua layanan gaming
-              </li>
-            </ul>
+    <div className="min-h-screen bg-black text-white">
+      {/* Main Content with Gradient Background */}
+      <div className="bg-gradient-to-b from-green-900/40 via-green-800/20 to-black py-8 px-4">
+        <div className="max-w-md mx-auto">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-green-400 mb-2">Buat Akun Baru</h1>
+            <p className="text-dark-300 mb-3">Bergabung dengan komunitas gamer!</p>
+            <div className="bg-green-900/20 border border-green-500/20 rounded-lg p-4 text-left">
+              <h3 className="text-green-400 font-semibold mb-2 flex items-center">
+                <span className="mr-2">🎁</span>
+                Bonus Pendaftaran
+              </h3>
+              <ul className="text-sm text-gray-300 space-y-1">
+                <li className="flex items-center">
+                  <span className="text-green-400 mr-2">✓</span>
+                  Saldo demo Rp 1.000.000 gratis
+                </li>
+                <li className="flex items-center">
+                  <span className="text-green-400 mr-2">✓</span>
+                  Invoice otomatis dikirim ke email
+                </li>
+                <li className="flex items-center">
+                  <span className="text-green-400 mr-2">✓</span>
+                  Akses ke semua layanan gaming
+                </li>
+              </ul>
+            </div>
           </div>
-        </div>
 
-        {/* Register Form */}
-        <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-purple-500/20 p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email Field */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-                Email <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-                placeholder="contoh@email.com"
-                required
+          {/* Register Form */}
+          <div className="bg-dark-800/50 backdrop-blur-md rounded-xl border border-green-600/20 p-8 shadow-xl">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Email Field */}
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+                  Email <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-dark-700/70 border border-dark-600 rounded-lg text-white placeholder-dark-400 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
+                  placeholder="contoh@email.com"
+                  required
+                  disabled={loading}
+                />
+                <p className="text-green-400 text-xs mt-1 flex items-center">
+                  <span className="mr-1">📧</span>
+                  Email ini akan digunakan untuk pengiriman invoice transaksi
+                </p>
+              </div>
+
+              {/* Username Field */}
+              <div>
+                <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
+                  Username <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="username"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-dark-700/70 border border-dark-600 rounded-lg text-white placeholder-dark-400 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
+                  placeholder="usernameanda"
+                  required
+                  disabled={loading}
+                />
+                <p className="text-gray-400 text-xs mt-1">Minimal 3 karakter, tanpa spasi</p>
+              </div>
+
+              {/* Full Name Field */}
+              <div>
+                <label htmlFor="fullName" className="block text-sm font-medium text-gray-300 mb-2">
+                  Nama Lengkap
+                </label>
+                <input
+                  type="text"
+                  id="fullName"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-dark-700/70 border border-dark-600 rounded-lg text-white placeholder-dark-400 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
+                  placeholder="Nama Lengkap Anda"
+                  disabled={loading}
+                />
+              </div>
+
+              {/* Phone Number Field */}
+              <div>
+                <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-300 mb-2">
+                  Nomor HP
+                </label>
+                <input
+                  type="tel"
+                  id="phoneNumber"
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-dark-700/70 border border-dark-600 rounded-lg text-white placeholder-dark-400 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
+                  placeholder="08123456789"
+                  disabled={loading}
+                />
+              </div>
+
+              {/* Password Field */}
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+                  Password <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-dark-700/70 border border-dark-600 rounded-lg text-white placeholder-dark-400 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
+                  placeholder="Minimal 6 karakter"
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              {/* Confirm Password Field */}
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-2">
+                  Konfirmasi Password <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-dark-700/70 border border-dark-600 rounded-lg text-white placeholder-dark-400 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
+                  placeholder="Ulangi password"
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
                 disabled={loading}
-              />
-              <p className="text-blue-400 text-xs mt-1 flex items-center">
-                <span className="mr-1">📧</span>
-                Email ini akan digunakan untuk pengiriman invoice transaksi
+                className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform hover:shadow-lg hover:shadow-green-500/20"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center">
+                    <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></span>
+                    Mendaftar...
+                  </span>
+                ) : (
+                  'Daftar Sekarang'
+                )}
+              </button>
+            </form>
+
+            {/* Divider */}
+            <div className="my-6 flex items-center">
+              <div className="flex-1 border-t border-dark-600"></div>
+              <span className="px-4 text-dark-400 text-sm">atau</span>
+              <div className="flex-1 border-t border-dark-600"></div>
+            </div>
+
+            {/* Login Link */}
+            <div className="text-center">
+              <p className="text-dark-400 text-sm">
+                Sudah punya akun?{' '}
+                <Link 
+                  href="/login" 
+                  className="text-green-400 hover:text-green-300 font-medium transition-colors"
+                >
+                  Masuk Sekarang
+                </Link>
               </p>
             </div>
-
-            {/* Username Field */}
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
-                Username <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="text"
-                id="username"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-                placeholder="usernameanda"
-                required
-                disabled={loading}
-              />
-              <p className="text-gray-400 text-xs mt-1">Minimal 3 karakter, tanpa spasi</p>
-            </div>
-
-            {/* Full Name Field */}
-            <div>
-              <label htmlFor="fullName" className="block text-sm font-medium text-gray-300 mb-2">
-                Nama Lengkap
-              </label>
-              <input
-                type="text"
-                id="fullName"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-                placeholder="Nama Lengkap Anda"
-                disabled={loading}
-              />
-            </div>
-
-            {/* Phone Number Field */}
-            <div>
-              <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-300 mb-2">
-                Nomor HP
-              </label>
-              <input
-                type="tel"
-                id="phoneNumber"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-                placeholder="08123456789"
-                disabled={loading}
-              />
-            </div>
-
-            {/* Password Field */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
-                Password <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-                placeholder="Minimal 6 karakter"
-                required
-                disabled={loading}
-              />
-            </div>
-
-            {/* Confirm Password Field */}
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-2">
-                Konfirmasi Password <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-                placeholder="Ulangi password"
-                required
-                disabled={loading}
-              />
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center">
-                  <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></span>
-                  Mendaftar...
-                </span>
-              ) : (
-                'Daftar Sekarang'
-              )}
-            </button>
-          </form>
-
-          {/* Divider */}
-          <div className="my-6 flex items-center">
-            <div className="flex-1 border-t border-gray-600"></div>
-            <span className="px-4 text-gray-400 text-sm">atau</span>
-            <div className="flex-1 border-t border-gray-600"></div>
           </div>
-
-          {/* Login Link */}
-          <div className="text-center">
-            <p className="text-gray-400 text-sm">
-              Sudah punya akun?{' '}
-              <Link 
-                href="/login" 
-                className="text-purple-400 hover:text-purple-300 font-medium transition-colors"
-              >
-                Masuk Sekarang
-              </Link>
-            </p>
-          </div>
-        </div>
-
-        {/* Back to Home */}
-        <div className="text-center mt-6">
-          <Link 
-            href="/" 
-            className="text-gray-400 hover:text-white text-sm transition-colors"
-          >
-            ← Kembali ke Beranda
-          </Link>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="bg-dark-900 border-t border-dark-700 py-6 px-4 text-white">
+        <div className="max-w-7xl mx-auto text-center">
+          <p className="text-dark-400">&copy; 2024 DoaIbu Store. All rights reserved.</p>
+        </div>
+      </footer>
     </div>
   );
 } 

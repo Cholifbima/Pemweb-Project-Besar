@@ -3,11 +3,21 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ArrowLeft, Star, Shield, Zap, CreditCard, User, Smartphone, Mail, CheckCircle, AlertCircle, Crown, Trophy, Target, Clock, Users } from 'lucide-react'
 import { getGameById, BoostService } from '@/data/games'
 import { showToast } from '@/lib/toast'
 import { useUser } from '@/contexts/UserContext'
 import Invoice from '@/components/Invoice'
+// Import game logo images
+import logoMobileLegends from '@/assets/logo_mobile_legend.png'
+import logoDota from '@/assets/logo_dota.png'
+import logoPubg from '@/assets/logo_pubg.png'
+import logoFreeFire from '@/assets/logo_free_fire.png'
+import logoGenshinImpact from '@/assets/logo_genshin_impact.png'
+import logoValorant from '@/assets/logo_valorant.png'
+import logoClashRoyale from '@/assets/logo_clash_royale.png'
+import logoAsphalt9 from '@/assets/logo_asphalt_9.png'
 
 export default function GameBoostPage() {
   const params = useParams()
@@ -33,6 +43,31 @@ export default function GameBoostPage() {
   const [step, setStep] = useState(1) // 1: Select Service, 2: Fill Data, 3: Payment
   const [showInvoice, setShowInvoice] = useState(false)
   const [invoiceData, setInvoiceData] = useState<any>(null)
+
+  // Function to get logo by game ID
+  const getLogoByGameId = (id: string) => {
+    switch (id) {
+      case 'mobile-legends':
+        return logoMobileLegends;
+      case 'dota2':
+      case 'dota-2':
+        return logoDota;
+      case 'pubg-mobile':
+        return logoPubg;
+      case 'free-fire':
+        return logoFreeFire;
+      case 'genshin-impact':
+        return logoGenshinImpact;
+      case 'valorant':
+        return logoValorant;
+      case 'clash-royale':
+        return logoClashRoyale;
+      case 'asphalt-9':
+        return logoAsphalt9;
+      default:
+        return logoMobileLegends; // Default fallback
+    }
+  }
 
   useEffect(() => {
     if (!game || !game.hasBoost) {
@@ -172,38 +207,45 @@ export default function GameBoostPage() {
 
   if (!game) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-green-900/40 via-green-800/20 to-black flex items-center justify-center">
         <div className="text-white text-xl">Game tidak ditemukan...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <div className="min-h-screen bg-gradient-to-b from-green-900/40 via-green-800/20 to-black">
       {/* Header */}
       <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <Link 
           href="/boost-services"
-          className="inline-flex items-center text-purple-300 hover:text-white transition-colors mb-4 sm:mb-6 text-sm sm:text-base"
+          className="inline-flex items-center text-green-400 hover:text-white transition-colors mb-4 sm:mb-6 text-sm sm:text-base"
         >
           <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
           Kembali ke Boost Services
         </Link>
 
         {/* Game Info Header */}
-        <div className="bg-black/20 backdrop-blur-md rounded-xl sm:rounded-2xl border border-purple-500/20 p-4 sm:p-8 mb-4 sm:mb-8">
+        <div className="bg-dark-800/20 backdrop-blur-md rounded-xl sm:rounded-2xl border border-green-500/20 p-4 sm:p-8 mb-4 sm:mb-8">
           <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
-            <div className="text-4xl sm:text-6xl animate-bounce">{game.icon}</div>
+            <div className="relative w-20 h-20 sm:w-24 sm:h-24">
+              <Image 
+                src={getLogoByGameId(gameId)}
+                alt={game?.name || 'Game Logo'}
+                fill
+                className="object-contain"
+              />
+            </div>
             <div className="flex-1 text-center sm:text-left">
-              <h1 className="text-2xl sm:text-4xl font-bold text-white mb-2">{game.name} Boost</h1>
-              <p className="text-purple-300 mb-2 sm:mb-4 text-sm sm:text-base">Tingkatkan rank dan skill dengan bantuan pro player</p>
+              <h1 className="text-2xl sm:text-4xl font-bold text-white mb-2">{game?.name} Boost</h1>
+              <p className="text-green-400 mb-2 sm:mb-4 text-sm sm:text-base">Tingkatkan rank dan skill dengan bantuan pro player</p>
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-6">
                 <div className="flex items-center">
                   <Star className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400 mr-1 sm:mr-2" />
                   <span className="text-yellow-400 font-semibold text-sm sm:text-base">{game.rating}</span>
                 </div>
                 <span className="text-gray-400 text-sm sm:text-base">by {game.publisher}</span>
-                <div className="bg-orange-500/20 text-orange-400 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold">
+                <div className="bg-green-500/20 text-green-400 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold">
                   🏆 Pro Service
                 </div>
               </div>
@@ -218,7 +260,7 @@ export default function GameBoostPage() {
               <div key={stepNum} className="flex items-center">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all duration-300 ${
                   step >= stepNum 
-                    ? 'bg-orange-600 text-white' 
+                    ? 'bg-green-600 text-white' 
                     : 'bg-gray-700 text-gray-400'
                 }`}>
                   {step > stepNum ? <CheckCircle className="w-5 h-5" /> : stepNum}
@@ -232,7 +274,7 @@ export default function GameBoostPage() {
                 </span>
                 {stepNum < 3 && (
                   <div className={`w-16 h-1 mx-4 rounded transition-all duration-300 ${
-                    step > stepNum ? 'bg-orange-600' : 'bg-gray-700'
+                    step > stepNum ? 'bg-green-600' : 'bg-gray-700'
                   }`} />
                 )}
               </div>
@@ -245,9 +287,9 @@ export default function GameBoostPage() {
           <div className="lg:col-span-2">
             {/* Step 1: Select Service */}
             {step === 1 && (
-              <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-purple-500/20 p-6">
+              <div className="bg-dark-800/20 backdrop-blur-md rounded-2xl border border-green-500/20 p-6">
                 <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-                  <Trophy className="w-6 h-6 text-orange-400 mr-3" />
+                  <Trophy className="w-6 h-6 text-green-400 mr-3" />
                   Pilih Layanan Boost
                 </h2>
                 
@@ -258,12 +300,12 @@ export default function GameBoostPage() {
                       onClick={() => setSelectedService(service)}
                       className={`relative p-6 rounded-xl border cursor-pointer transition-all duration-300 hover:scale-105 ${
                         selectedService?.id === service.id
-                          ? 'bg-gradient-to-br from-orange-600/30 to-red-600/30 border-orange-400 shadow-lg shadow-orange-500/20'
-                          : 'bg-gray-800/30 border-gray-600/30 hover:border-orange-500/50'
+                          ? 'bg-gradient-to-br from-green-600/30 to-green-800/30 border-green-400 shadow-lg shadow-green-500/20'
+                          : 'bg-dark-700/30 border-dark-600/30 hover:border-green-500/50'
                       }`}
                     >
                       {service.isPopular && (
-                        <div className="absolute -top-2 left-4 bg-gradient-to-r from-orange-400 to-red-500 text-black text-xs font-bold px-2 py-1 rounded-full">
+                        <div className="absolute -top-2 left-4 bg-gradient-to-r from-green-400 to-green-500 text-black text-xs font-bold px-2 py-1 rounded-full">
                           🔥 POPULER
                         </div>
                       )}
@@ -298,11 +340,11 @@ export default function GameBoostPage() {
                         </div>
 
                         <div className="text-right ml-6">
-                          <div className="text-3xl font-bold text-orange-400 mb-2">
+                          <div className="text-3xl font-bold text-green-400 mb-2">
                             {formatCurrency(service.price)}
                           </div>
                           {selectedService?.id === service.id && (
-                            <div className="bg-orange-600 text-white py-1 px-3 rounded-full text-sm font-semibold">
+                            <div className="bg-green-600 text-white py-1 px-3 rounded-full text-sm font-semibold">
                               ✓ Dipilih
                             </div>
                           )}
@@ -315,7 +357,7 @@ export default function GameBoostPage() {
                 <button
                   onClick={handleNextStep}
                   disabled={!selectedService}
-                  className="w-full mt-6 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105"
+                  className="w-full mt-6 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105"
                 >
                   Lanjut ke Data Akun
                 </button>
@@ -324,9 +366,9 @@ export default function GameBoostPage() {
 
             {/* Step 2: Account Data */}
             {step === 2 && (
-              <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-purple-500/20 p-6">
+              <div className="bg-dark-800/20 backdrop-blur-md rounded-2xl border border-green-500/20 p-6">
                 <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-                  <User className="w-6 h-6 text-orange-400 mr-3" />
+                  <User className="w-6 h-6 text-green-400 mr-3" />
                   Data Akun Game
                 </h2>
 
@@ -342,7 +384,7 @@ export default function GameBoostPage() {
                         value={formData.userId}
                         onChange={handleInputChange}
                         placeholder="Masukkan User ID"
-                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                        className="w-full px-4 py-3 bg-dark-700/50 border border-dark-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
                         required
                       />
                     </div>
@@ -357,7 +399,7 @@ export default function GameBoostPage() {
                         value={formData.serverId}
                         onChange={handleInputChange}
                         placeholder="Masukkan Server ID"
-                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                        className="w-full px-4 py-3 bg-dark-700/50 border border-dark-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
                       />
                     </div>
                   </div>
@@ -373,7 +415,7 @@ export default function GameBoostPage() {
                         value={formData.currentRank}
                         onChange={handleInputChange}
                         placeholder="Contoh: Epic III"
-                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                        className="w-full px-4 py-3 bg-dark-700/50 border border-dark-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
                       />
                     </div>
                     
@@ -387,7 +429,7 @@ export default function GameBoostPage() {
                         value={formData.targetRank}
                         onChange={handleInputChange}
                         placeholder="Contoh: Mythic"
-                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                        className="w-full px-4 py-3 bg-dark-700/50 border border-dark-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
                       />
                     </div>
                   </div>
@@ -402,7 +444,7 @@ export default function GameBoostPage() {
                       value={formData.email}
                       onChange={handleInputChange}
                       placeholder="contoh@email.com"
-                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                      className="w-full px-4 py-3 bg-dark-700/50 border border-dark-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
                       required
                     />
                   </div>
@@ -417,7 +459,7 @@ export default function GameBoostPage() {
                       value={formData.phoneNumber}
                       onChange={handleInputChange}
                       placeholder="08123456789"
-                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                      className="w-full px-4 py-3 bg-dark-700/50 border border-dark-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
                     />
                   </div>
 
@@ -433,7 +475,7 @@ export default function GameBoostPage() {
                           name="loginMethod"
                           value={formData.loginMethod}
                           onChange={handleInputChange}
-                          className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                          className="w-full px-4 py-3 bg-dark-700/50 border border-dark-600/50 rounded-lg text-white focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
                         >
                           <option value="email">Email</option>
                           <option value="facebook">Facebook</option>
@@ -451,7 +493,7 @@ export default function GameBoostPage() {
                           value={formData.loginCredential}
                           onChange={handleInputChange}
                           placeholder={formData.loginMethod === 'email' ? 'Email untuk login' : 'Username atau email'}
-                          className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                          className="w-full px-4 py-3 bg-dark-700/50 border border-dark-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
                           required
                         />
                       </div>
@@ -467,7 +509,7 @@ export default function GameBoostPage() {
                         value={formData.password}
                         onChange={handleInputChange}
                         placeholder="Password akun game"
-                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                        className="w-full px-4 py-3 bg-dark-700/50 border border-dark-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
                         required
                       />
                     </div>
@@ -482,7 +524,7 @@ export default function GameBoostPage() {
                         onChange={handleInputChange}
                         placeholder="Catatan khusus untuk joki (opsional)"
                         rows={3}
-                        className="w-full px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
+                        className="w-full px-4 py-3 bg-dark-700/50 border border-dark-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all"
                       />
                     </div>
                   </div>
@@ -507,7 +549,7 @@ export default function GameBoostPage() {
                   </button>
                   <button
                     onClick={handleNextStep}
-                    className="flex-1 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105"
+                    className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105"
                   >
                     Lanjut ke Pembayaran
                   </button>
@@ -517,9 +559,9 @@ export default function GameBoostPage() {
 
             {/* Step 3: Payment */}
             {step === 3 && (
-              <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-purple-500/20 p-6">
+              <div className="bg-dark-800/20 backdrop-blur-md rounded-2xl border border-green-500/20 p-6">
                 <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-                  <CreditCard className="w-6 h-6 text-orange-400 mr-3" />
+                  <CreditCard className="w-6 h-6 text-green-400 mr-3" />
                   Pembayaran
                 </h2>
 
@@ -577,7 +619,7 @@ export default function GameBoostPage() {
                   <button
                     onClick={handlePurchase}
                     disabled={loading}
-                    className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105"
+                    className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105"
                   >
                     {loading ? (
                       <span className="flex items-center justify-center">
@@ -597,16 +639,16 @@ export default function GameBoostPage() {
           <div className="space-y-6">
             {/* Selected Service */}
             {selectedService && (
-              <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-purple-500/20 p-6">
+              <div className="bg-dark-800/20 backdrop-blur-md rounded-2xl border border-green-500/20 p-6">
                 <h3 className="text-xl font-bold text-white mb-4 flex items-center">
                   <Crown className="w-5 h-5 text-yellow-400 mr-2" />
                   Layanan Dipilih
                 </h3>
-                <div className="bg-gradient-to-br from-orange-600/20 to-red-600/20 rounded-lg p-4 border border-orange-500/30">
+                <div className="bg-gradient-to-br from-green-600/20 to-green-800/20 rounded-lg p-4 border border-green-500/30">
                   <div className="text-center mb-4">
                     <div className="text-lg font-bold text-white mb-1">{selectedService.name}</div>
-                    <div className="text-sm text-orange-300 mb-2">{selectedService.duration}</div>
-                    <div className="text-2xl font-bold text-orange-400">
+                    <div className="text-sm text-green-300 mb-2">{selectedService.duration}</div>
+                    <div className="text-2xl font-bold text-green-400">
                       {formatCurrency(selectedService.price)}
                     </div>
                   </div>
@@ -623,7 +665,7 @@ export default function GameBoostPage() {
             )}
 
             {/* Features */}
-            <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-purple-500/20 p-6">
+            <div className="bg-dark-800/20 backdrop-blur-md rounded-2xl border border-green-500/20 p-6">
               <h3 className="text-xl font-bold text-white mb-4">Keunggulan Joki Kami</h3>
               <div className="space-y-4">
                 <div className="flex items-center">

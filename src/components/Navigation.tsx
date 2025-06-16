@@ -1,17 +1,57 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
-import { GamepadIcon, User, LogOut, Home, Gamepad, Trophy, Phone, Menu, X } from 'lucide-react'
+import { GamepadIcon, User, LogOut, Home, Gamepad, Trophy, Phone, Menu, X, Search } from 'lucide-react'
 import { showToast } from '@/lib/toast'
 import { useUser } from '@/contexts/UserContext'
+import Image from 'next/image'
+// Import the banner image from assets
+import bannerWelcome from '@/assets/banner_welcome.png'
 
 export default function Navigation() {
   const { user, setUser, isLoading } = useUser()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showSearchResults, setShowSearchResults] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
+  const searchInputRef = useRef<HTMLInputElement>(null)
+
+  // Prevent scrolling when mobile menu is open and dispatch custom event
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      // Apply multiple techniques to fully prevent scrolling
+      document.body.style.overflow = 'hidden'
+      document.body.style.position = 'fixed'
+      document.body.style.width = '100%'
+      document.body.style.top = `-${window.scrollY}px`
+      document.documentElement.style.overflow = 'hidden'
+    } else {
+      // Restore scrolling
+      const scrollY = document.body.style.top
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.width = ''
+      document.body.style.top = ''
+      document.documentElement.style.overflow = ''
+      window.scrollTo(0, parseInt(scrollY || '0') * -1)
+    }
+    
+    // Dispatch custom event for other components to listen
+    const event = new CustomEvent('mobileMenuToggle', { detail: { isOpen: isMobileMenuOpen } })
+    window.dispatchEvent(event)
+    
+    // Cleanup function to restore scrolling when component unmounts
+    return () => {
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.width = ''
+      document.body.style.top = ''
+      document.documentElement.style.overflow = ''
+    }
+  }, [isMobileMenuOpen])
 
   const handleLogout = async () => {
     showToast.loading('Sedang logout...')
@@ -48,182 +88,224 @@ export default function Navigation() {
     return pathname.startsWith(path)
   }
 
+  // Game list for search functionality
+  const gameList = [
+    { id: 'mobile-legends', name: 'Mobile Legends', icon: '📱', publisher: 'Moonton' },
+    { id: 'dota-2', name: 'Dota 2', icon: '🎮', publisher: 'Valve' },
+    { id: 'pubg-mobile', name: 'PUBG Mobile', icon: '🔫', publisher: 'Tencent Games' },
+    { id: 'free-fire', name: 'Free Fire', icon: '🔥', publisher: 'Garena' },
+    { id: 'genshin-impact', name: 'Genshin Impact', icon: '⚔️', publisher: 'miHoYo' },
+    { id: 'valorant', name: 'Valorant', icon: '🎯', publisher: 'Riot Games' },
+    { id: 'clash-royale', name: 'Clash Royale', icon: '👑', publisher: 'Supercell' },
+    { id: 'asphalt-9', name: 'Asphalt 9', icon: '🏎️', publisher: 'Gameloft' }
+  ]
+
+  // Search functionality
+  const filteredGames = gameList.filter(game => 
+    game.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+  
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value)
+    setShowSearchResults(e.target.value.length > 0)
+  }
+  
+  // Hide search results when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchInputRef.current && !searchInputRef.current.contains(event.target as Node)) {
+        setShowSearchResults(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
   const navLinks = [
-    { href: '/', label: 'Home', icon: Home },
     { href: '/top-up', label: 'Top Up', icon: Gamepad },
+    { href: '/transactions', label: 'Cek Transaksi', icon: Trophy },
     { href: '/boost-services', label: 'Joki Game', icon: Trophy },
     { href: '/contact', label: 'Contact', icon: Phone },
   ]
 
   return (
-    <nav className="bg-black/20 backdrop-blur-md border-b border-purple-500/20 sticky top-0 z-50">
+    <nav className={`bg-dark-800/80 backdrop-blur-md border-b border-dark-700/50 sticky top-0 z-50 transition-all duration-300 ${isMobileMenuOpen ? 'md:ml-0 ml-[40%]' : ''}`} style={{ padding: 0 }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo - Fixed width */}
-          <div className="flex items-center w-48">
-            <Link 
-              href="/" 
-              onClick={(e) => {
-                e.preventDefault();
-                console.log('🏠 Logo clicked - navigating to home');
-                console.log('📍 Current pathname:', pathname);
-                
-                // Use window.location.href for problematic pages (top-up, boost-services)
-                if (pathname.includes('/top-up') || pathname.includes('/boost-services')) {
-                  console.log('🚨 Using window.location.href for problematic page');
-                  window.location.href = '/';
-                } else {
-                  console.log('✅ Using router.push for normal navigation');
-                  router.push('/');
-                }
-              }}
-              className="flex items-center space-x-2"
-            >
-              <GamepadIcon className="w-8 h-8 text-purple-400" />
-              <span className="text-xl font-bold text-white">DoaIbu Store</span>
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <div className="flex-shrink-0 flex items-center">
+            <Link href="/" className="flex items-center">
+              <Image 
+                src={bannerWelcome.src} 
+                alt="DoaIbu Store Logo" 
+                width={40} 
+                height={40} 
+                className="mr-2 rounded-full"
+              />
+              <span className="text-xl font-bold text-green-400">DoaIbu Store</span>
             </Link>
           </div>
 
-          {/* Desktop Navigation - Centered */}
-          <div className="hidden md:flex items-center space-x-8 flex-1 justify-center">
+          {/* Search Bar */}
+          <div className="flex-1 max-w-xl mx-4">
+            <div className="relative" ref={searchInputRef}>
+              <input
+                type="text"
+                placeholder="Cari game favorit kamu..."
+                className="w-full bg-dark-700/70 border border-dark-600 rounded-lg pl-4 pr-10 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 text-white placeholder-dark-400"
+                value={searchQuery}
+                onChange={handleSearch}
+                onFocus={() => setShowSearchResults(searchQuery.length > 0)}
+              />
+              <button className="absolute right-0 top-0 h-full px-3 text-green-400">
+                <Search className="w-5 h-5" />
+              </button>
+              
+              {/* Search Results Dropdown */}
+              {showSearchResults && filteredGames.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-dark-800 border border-dark-700 rounded-lg shadow-xl z-50 overflow-hidden">
+                  <div className="p-1">
+                    {filteredGames.map(game => (
+                      <div key={game.id} className="py-2">
+                        <div className="text-green-400 font-medium px-3 py-1">{game.name}</div>
+                        <Link 
+                          href={`/top-up/${game.id}`}
+                          className="flex items-center px-3 py-2 hover:bg-dark-700 rounded-md transition-colors"
+                        >
+                          <div className="w-8 h-8 flex items-center justify-center bg-green-600/20 rounded-full mr-3 text-xl">
+                            {game.icon}
+                          </div>
+                          <span>Top Up: {game.name}</span>
+                        </Link>
+                        <Link 
+                          href={`/boost-services/${game.id}`}
+                          className="flex items-center px-3 py-2 hover:bg-dark-700 rounded-md transition-colors"
+                        >
+                          <div className="w-8 h-8 flex items-center justify-center bg-yellow-600/20 rounded-full mr-3 text-xl">
+                            {game.icon}
+                          </div>
+                          <span>Joki: {game.name}</span>
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-4">
             {navLinks.map((link) => {
               const Icon = link.icon
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    console.log('🔗 Navigation link clicked:', link.label, 'href:', link.href);
-                    console.log('📍 Current pathname:', pathname);
-                    
-                    // Use window.location.href for problematic pages (top-up, boost-services)
-                    if (pathname.includes('/top-up') || pathname.includes('/boost-services')) {
-                      console.log('🚨 Using window.location.href for problematic page');
-                      window.location.href = link.href;
-                    } else {
-                      console.log('✅ Using router.push for normal navigation');
-                      router.push(link.href);
-                    }
-                  }}
-                  className={`flex items-center space-x-1 px-3 py-2 rounded-lg transition-colors ${
-                    isActive(link.href)
-                      ? 'text-purple-400 bg-purple-500/20'
-                      : 'text-gray-300 hover:text-purple-400'
-                  }`}
+                  className={`text-dark-300 hover:text-green-400 px-3 py-2 rounded-md font-medium`}
                 >
-                  <Icon className="w-4 h-4" />
-                  <span>{link.label}</span>
+                  {link.label}
                 </Link>
               )
             })}
-          </div>
-
-          {/* User Menu / Login Button - Fixed width */}
-          <div className="hidden md:flex items-center justify-end w-80">
             {isLoading ? (
-              <div className="w-8 h-8 bg-gray-600 rounded-full animate-pulse"></div>
+              <div className="w-8 h-8 bg-dark-700 rounded-full animate-pulse"></div>
             ) : user ? (
-              <div className="flex items-center space-x-4">
-                <div className="text-right min-w-[120px]">
-                  <p className="text-white font-medium text-sm truncate">{(user as any).fullName || user.username}</p>
-                  <p className="text-green-400 text-xs font-semibold">{formatCurrency(user.balance)}</p>
-                </div>
-                
-                {/* Dashboard Button */}
-                <Link
-                  href="/dashboard"
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${
-                    isActive('/dashboard')
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-purple-500/20 text-purple-400 hover:bg-purple-500/30'
-                  }`}
-                >
-                  <User className="w-4 h-4" />
-                  <span>Dashboard</span>
+              <>
+                <Link href="/dashboard" className="text-dark-300 hover:text-green-400 px-3 py-2 rounded-md font-medium">
+                  Dashboard
                 </Link>
-
-                {/* Logout Button */}
                 <button
                   onClick={handleLogout}
-                  className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors whitespace-nowrap"
+                  className="text-dark-300 hover:text-green-400 px-3 py-2 rounded-md font-medium"
                 >
-                  <LogOut className="w-4 h-4" />
-                  <span>Logout</span>
+                  Logout
                 </button>
-              </div>
+              </>
             ) : (
-              <div className="flex items-center space-x-4">
-                <Link
-                  href="/login"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    console.log('🔑 Login button clicked');
-                    console.log('📍 Current pathname:', pathname);
-                    
-                    // Use window.location.href for problematic pages (top-up, boost-services)
-                    if (pathname.includes('/top-up') || pathname.includes('/boost-services')) {
-                      console.log('🚨 Using window.location.href for problematic page');
-                      window.location.href = '/login';
-                    } else {
-                      console.log('✅ Using router.push for normal navigation');
-                      router.push('/login');
-                    }
-                  }}
-                  className="text-gray-300 hover:text-purple-400 transition-colors px-4 py-2 whitespace-nowrap"
-                >
-                  Login
+              <>
+                <Link href="/login" className="text-dark-300 hover:text-green-400 px-3 py-2 rounded-md font-medium">
+                  Masuk
                 </Link>
-                <Link
-                  href="/register"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    console.log('📝 Register button clicked');
-                    console.log('📍 Current pathname:', pathname);
-                    
-                    // Use window.location.href for problematic pages (top-up, boost-services)
-                    if (pathname.includes('/top-up') || pathname.includes('/boost-services')) {
-                      console.log('🚨 Using window.location.href for problematic page');
-                      window.location.href = '/register';
-                    } else {
-                      console.log('✅ Using router.push for normal navigation');
-                      router.push('/register');
-                    }
-                  }}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold px-6 py-2 rounded-lg transition-all duration-300 whitespace-nowrap"
-                >
-                  Register
+                <Link href="/register" className="bg-green-600 text-white px-4 py-2 rounded-md font-medium hover:bg-green-700 transition-colors">
+                  Daftar
                 </Link>
-              </div>
+              </>
             )}
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden">
-            <button
+          <div className="md:hidden flex items-center">
+            <button 
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-gray-300 hover:text-white p-2"
+              className={`text-white p-2 focus:outline-none rounded-md transition-all duration-300 ${
+                isMobileMenuOpen 
+                  ? 'bg-red-500 shadow-lg shadow-red-500/30' 
+                  : 'bg-green-500 shadow-lg shadow-green-500/30'
+              }`}
+              aria-expanded={isMobileMenuOpen}
+              aria-label="Toggle menu"
             >
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-purple-500/20">
-            <div className="space-y-4">
-              {/* Navigation Links */}
+      {/* Mobile Menu - Slide from left with overlay */}
+      <div 
+        className={`fixed inset-0 z-40 transition-opacity duration-300 ease-in-out p-0 m-0 ${
+          isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+        style={{ margin: 0, padding: 0 }}
+      >
+        {/* Backdrop - completely black with opacity */}
+        <div 
+          className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+          onClick={() => setIsMobileMenuOpen(false)}
+          style={{ margin: 0, padding: 0 }}
+        ></div>
+        
+        {/* Sidebar */}
+        <div 
+          className={`fixed top-0 bottom-0 w-2/3 max-w-xs bg-gradient-to-b from-dark-900 to-dark-800 shadow-2xl transform transition-transform duration-300 ease-in-out h-full border-r border-green-600/20 ${
+            isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+          style={{ left: 0, margin: 0, padding: 0 }}
+        >
+          {/* Logo and close button */}
+          <div className="py-4 px-3 border-b border-dark-700 flex items-center justify-between bg-dark-900">
+            <Link href="/" className="flex items-center" onClick={() => setIsMobileMenuOpen(false)}>
+              <Image 
+                src={bannerWelcome.src} 
+                alt="DoaIbu Store Logo" 
+                width={32} 
+                height={32} 
+                className="mr-2 rounded-full"
+              />
+              <span className="text-lg font-bold text-green-400">DoaIbu Store</span>
+            </Link>
+            <button 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="text-dark-400 hover:text-white p-1"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          
+          {/* Navigation Links */}
+          <div className="py-4 overflow-y-auto h-[calc(100vh-70px)] flex flex-col bg-dark-800" style={{ paddingLeft: 0 }}>
+            <div className="space-y-1 pr-3 flex-1">
               {navLinks.map((link) => {
                 const Icon = link.icon
                 return (
-                  <Link
+                  <Link 
                     key={link.href}
-                    href={link.href}
+                    href={link.href} 
                     className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                       isActive(link.href)
-                        ? 'text-purple-400 bg-purple-500/20'
-                        : 'text-gray-300 hover:text-purple-400'
+                        ? 'bg-green-600/20 text-green-400'
+                        : 'text-dark-300 bg-dark-700/50 hover:bg-dark-600 hover:text-green-400'
                     }`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
@@ -232,14 +314,16 @@ export default function Navigation() {
                   </Link>
                 )
               })}
-
-              {/* User Section */}
+            </div>
+            
+            {/* User Section */}
+            <div className="border-t border-dark-700 mt-4 pt-4 px-2 bg-dark-900">
               {isLoading ? (
                 <div className="px-4 py-3">
-                  <div className="w-full h-8 bg-gray-600 rounded animate-pulse"></div>
+                  <div className="w-full h-8 bg-dark-700 rounded animate-pulse"></div>
                 </div>
               ) : user ? (
-                <div className="px-4 py-3 border-t border-purple-500/20">
+                <div className="px-4 py-3">
                   <div className="mb-4">
                     <p className="text-white font-medium">{(user as any).fullName || user.username}</p>
                     <p className="text-green-400 text-sm font-semibold">{formatCurrency(user.balance)}</p>
@@ -248,23 +332,25 @@ export default function Navigation() {
                   <div className="space-y-2">
                     <Link
                       href="/dashboard"
-                      className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors w-full ${
+                      className={`block text-center py-2 px-4 rounded-lg transition-colors ${
                         isActive('/dashboard')
-                          ? 'bg-purple-600 text-white'
-                          : 'bg-purple-500/20 text-purple-400 hover:bg-purple-500/30'
+                          ? 'bg-green-600 text-white'
+                          : 'bg-green-600/20 text-green-400 hover:bg-green-600/30'
                       }`}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      <User className="w-5 h-5" />
-                      <span>Dashboard</span>
+                      <div className="flex items-center justify-center space-x-2">
+                        <User className="w-5 h-5" />
+                        <span>Dashboard</span>
+                      </div>
                     </Link>
-
+                    
                     <button
                       onClick={() => {
-                        handleLogout()
                         setIsMobileMenuOpen(false)
+                        handleLogout()
                       }}
-                      className="flex items-center space-x-3 px-4 py-3 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors w-full"
+                      className="w-full flex items-center justify-center space-x-2 py-2 px-4 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"
                     >
                       <LogOut className="w-5 h-5" />
                       <span>Logout</span>
@@ -272,27 +358,27 @@ export default function Navigation() {
                   </div>
                 </div>
               ) : (
-                <div className="px-4 py-3 border-t border-purple-500/20 space-y-2">
+                <div className="px-4 py-3 space-y-2">
                   <Link
                     href="/login"
-                    className="block text-center py-3 text-gray-300 hover:text-purple-400 transition-colors"
+                    className="block text-center py-2 px-4 bg-dark-700 text-green-400 hover:bg-dark-600 rounded-lg transition-colors"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    Login
+                    Masuk
                   </Link>
                   <Link
                     href="/register"
-                    className="block text-center bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 rounded-lg transition-all duration-300"
+                    className="block text-center py-2 px-4 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition-colors"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    Register
+                    Daftar
                   </Link>
                 </div>
               )}
             </div>
           </div>
-        )}
+        </div>
       </div>
     </nav>
   )
-} 
+}
