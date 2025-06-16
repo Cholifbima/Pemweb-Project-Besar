@@ -273,8 +273,8 @@ export default function Navigation() {
         
         {/* Sidebar */}
         <div 
-          className={`fixed top-0 left-0 bottom-0 w-80 max-w-[85vw] bg-gradient-to-b from-dark-900 to-dark-800 shadow-2xl transform transition-transform duration-300 ease-in-out h-full border-r border-green-600/20 z-50 ${
-            isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+          className={`fixed top-0 right-0 bottom-0 w-80 max-w-[85vw] bg-gradient-to-b from-dark-900 to-dark-800 shadow-2xl transform transition-transform duration-300 ease-in-out h-full border-l border-green-600/20 z-50 ${
+            isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
           }`}
         >
           {/* Logo and close button */}

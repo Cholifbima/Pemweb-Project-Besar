@@ -1,6 +1,9 @@
 {
   "/page": "app/page.js",
-  "/login/page": "app/login/page.js",
-  "/api/auth/me/route": "app/api/auth/me/route.js",
-  "/api/auth/login/route": "app/api/auth/login/route.js"
+  "/top-up/page": "app/top-up/page.js",
+  "/boost-services/page": "app/boost-services/page.js",
+  "/boost-services/[gameId]/page": "app/boost-services/[gameId]/page.js",
+  "/top-up/[gameId]/page": "app/top-up/[gameId]/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/auth/me/route": "app/api/auth/me/route.js"
 }

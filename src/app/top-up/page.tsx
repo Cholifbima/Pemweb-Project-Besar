@@ -244,7 +244,7 @@ export default function TopUpPage() {
               <p className="text-dark-400">Coba ubah filter kategori</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {filteredGames.map((game, index) => (
                 <div key={game.id} className="group cursor-pointer animate-fade-in-up" style={{ animationDelay: `${index * 0.1}s` }}>
                   <Link href={`/top-up/${game.id}`}>
