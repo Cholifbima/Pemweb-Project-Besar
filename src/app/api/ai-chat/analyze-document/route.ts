@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getUserFromToken } from '@/lib/auth'
+import { getUserFromTokenLegacy } from '@/lib/auth'
 import { analyzeDocument, uploadChatFile } from '@/lib/azure-ai'
+
+export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('📄 Document Analysis API called')
+    console.log('📄 Document analysis API called')
     
     // Get token from cookie
     const token = request.cookies.get('auth-token')?.value
@@ -18,7 +20,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user from token
-    const userResult = await getUserFromToken(token)
+    const userResult = await getUserFromTokenLegacy(token)
     if (!userResult.success || !userResult.user) {
       console.log('❌ Invalid token or user not found')
       return NextResponse.json(
@@ -28,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     const user = userResult.user
-    
+
     // Parse form data
     const formData = await request.formData()
     const file = formData.get('file') as File
@@ -50,7 +52,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate file size (max 10MB)
-    const maxSize = 10 * 1024 * 1024 // 10MB
+    const maxSize = 10 * 1024 * 1024
     if (file.size > maxSize) {
       return NextResponse.json(
         { error: 'Ukuran file terlalu besar. Maksimal 10MB.' },
@@ -58,49 +60,46 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log(`📤 Processing file: ${file.name} (${file.type}, ${file.size} bytes)`)
+    console.log('🔍 Analyzing document for user:', user.username)
+    console.log('📄 File:', file.name, 'Size:', file.size, 'Type:', file.type)
 
     // Upload file to Azure Blob Storage
     const uploadResult = await uploadChatFile(file, user.id.toString())
     
     if (!uploadResult.success) {
-      console.error('❌ File upload failed:', uploadResult.error)
+      console.error('❌ File upload error:', uploadResult.error)
       return NextResponse.json(
         { error: 'Gagal mengupload file' },
         { status: 500 }
       )
     }
 
-    // Analyze document with Azure Document Intelligence
+    // Analyze document
     const fileBuffer = await file.arrayBuffer()
     const analysisResult = await analyzeDocument(fileBuffer, file.name)
 
     if (!analysisResult.success) {
-      console.error('❌ Document analysis failed:', analysisResult.error)
+      console.error('❌ Document analysis error:', analysisResult.error)
       return NextResponse.json(
-        { 
-          error: 'Gagal menganalisis dokumen',
-          message: analysisResult.message 
-        },
+        { error: analysisResult.message || 'Gagal menganalisis dokumen' },
         { status: 500 }
       )
     }
 
     console.log('✅ Document analyzed successfully')
-
+    
     return NextResponse.json({
       success: true,
       fileUrl: uploadResult.url,
       analysis: {
         extractedText: analysisResult.extractedText,
-        aiResponse: analysisResult.analysis,
-        fileName: file.name
+        aiResponse: analysisResult.analysis
       },
       timestamp: new Date().toISOString()
     })
 
   } catch (error: any) {
-    console.error('❌ Document Analysis API error:', error)
+    console.error('❌ Document analysis API error:', error)
     return NextResponse.json(
       { 
         error: 'Terjadi kesalahan saat menganalisis dokumen',

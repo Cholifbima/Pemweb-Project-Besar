@@ -15,6 +15,7 @@ interface UserContextType {
   user: User | null
   setUser: (user: User | null) => void
   isLoading: boolean
+  isAuthenticated: boolean
   refreshUser: () => Promise<void>
   updateBalance: (newBalance: number) => void
 }
@@ -83,6 +84,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     user,
     setUser,
     isLoading,
+    isAuthenticated: !!user && !isLoading,
     refreshUser,
     updateBalance
   }

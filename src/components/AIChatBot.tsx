@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { MessageCircle, Send, Upload, X, Bot, User, FileText, Image, Loader } from 'lucide-react'
+import { MessageCircle, Send, Upload, X, Bot, User, FileText, Image, Loader, UserCircle } from 'lucide-react'
 import { showToast } from '@/lib/toast'
 
 interface ChatMessage {
@@ -19,9 +19,11 @@ interface ChatMessage {
 interface AIChatBotProps {
   isOpen: boolean
   onClose: () => void
+  onContactAdmin?: () => void
+  onBack?: () => void
 }
 
-export default function AIChatBot({ isOpen, onClose }: AIChatBotProps) {
+export default function AIChatBot({ isOpen, onClose, onContactAdmin, onBack }: AIChatBotProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
@@ -190,6 +192,13 @@ export default function AIChatBot({ isOpen, onClose }: AIChatBotProps) {
     })
   }
 
+  const handleContactAdmin = () => {
+    onClose()
+    if (onContactAdmin) {
+      onContactAdmin()
+    }
+  }
+
   if (!isOpen) return null
 
   return (
@@ -280,7 +289,7 @@ export default function AIChatBot({ isOpen, onClose }: AIChatBotProps) {
 
         {/* Input */}
         <div className="p-4 border-t border-gray-700">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 mb-3">
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploadingFile}
@@ -322,10 +331,31 @@ export default function AIChatBot({ isOpen, onClose }: AIChatBotProps) {
               <Send className="w-5 h-5 text-white" />
             </button>
           </div>
-          
-          <p className="text-xs text-gray-500 mt-2">
-            💡 Tip: Upload screenshot atau dokumen untuk analisis AI
-          </p>
+
+          {/* Contact Admin Button */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              {onBack && (
+                <button
+                  onClick={onBack}
+                  className="text-xs text-gray-400 hover:text-white transition-colors"
+                >
+                  🎧 Customer Service
+                </button>
+              )}
+              <p className="text-xs text-gray-500">
+                💡 Tip: Upload screenshot atau dokumen untuk analisis AI
+              </p>
+            </div>
+            
+            <button
+              onClick={handleContactAdmin}
+              className="flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 rounded-lg transition-all duration-300 text-sm font-medium text-white"
+            >
+              <UserCircle className="w-4 h-4" />
+              <span>Chat Live Admin</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

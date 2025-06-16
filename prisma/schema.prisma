@@ -9,9 +9,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlserver"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
-  // Note: DATABASE_URL is dynamically built from AZURE_SQL_* variables in production
 }
 
 model User {
@@ -32,6 +31,7 @@ model User {
   // Relations
   orders        Order[]
   transactions  Transaction[]
+  chatSessions  ChatSession[]
   
   @@map("users")
 }
@@ -58,19 +58,22 @@ model Order {
 model Transaction {
   id          String   @id // Custom transaction ID like TRX123456789ABCDE
   userId      Int
-  type        String   // "topup" or "boost"
-  gameId      String
+  type        String   // "topup", "boost", "DEPOSIT", "ADMIN_ADJUSTMENT"
+  gameId      String?
   itemId      String?  // For top-up items
   serviceId   String?  // For boost services
   amount      Float
-  userGameId  String   // User's game ID
-  email       String   // Email for transaction
-  status      String   @default("pending") // pending, completed, failed
+  userGameId  String?  // User's game ID
+  email       String?  // Email for transaction
+  description String?  // Description for admin actions
+  status      String   @default("pending") // pending, completed, failed, SUCCESS
+  adminId     Int?     // Admin who processed this transaction
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
   // Relations
   user        User     @relation(fields: [userId], references: [id])
+  admin       Admin?   @relation(fields: [adminId], references: [id])
   
   @@map("transactions")
 }
@@ -85,4 +88,60 @@ model Game {
   updatedAt   DateTime @updatedAt
   
   @@map("games")
+}
+
+model Admin {
+  id          Int      @id @default(autoincrement())
+  username    String   @unique
+  password    String
+  role        String   @default("admin") // admin, super_admin
+  isActive    Boolean  @default(true)
+  isOnline    Boolean  @default(false) // Online status for real-time chat
+  lastLogin   DateTime?
+  lastSeen    DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  chatSessions ChatSession[]
+  chatMessages ChatMessage[]
+  transactions Transaction[]
+  
+  @@map("admins")
+}
+
+model ChatSession {
+  id          Int      @id @default(autoincrement())
+  userId      Int      // User ID (we'll require login for live chat)
+  status      String   @default("active") // active, closed, waiting
+  assignedTo  Int?     // Admin ID
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  user        User     @relation(fields: [userId], references: [id])
+  admin       Admin?   @relation(fields: [assignedTo], references: [id])
+  messages    ChatMessage[]
+  
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id          Int         @id @default(autoincrement())
+  sessionId   Int
+  content     String
+  isFromUser  Boolean     @default(true) // true for user, false for admin
+  adminId     Int?        // For admin messages
+  isRead      Boolean     @default(false)
+  messageType String      @default("text") // text, file, image
+  fileUrl     String?     // Azure Blob Storage URL
+  fileName    String?     // Original file name
+  fileSize    Int?        // File size in bytes
+  createdAt   DateTime    @default(now())
+  
+  // Relations
+  session     ChatSession @relation(fields: [sessionId], references: [id])
+  admin       Admin?      @relation(fields: [adminId], references: [id])
+  
+  @@map("chat_messages")
 }

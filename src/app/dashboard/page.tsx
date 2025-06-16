@@ -11,12 +11,12 @@ import Invoice from '@/components/Invoice'
 interface Transaction {
   id: string
   type: string
-  gameId: string
+  gameId: string | null
   itemId: string | null
   serviceId: string | null
   amount: number
-  userGameId: string
-  email: string
+  userGameId: string | null
+  email: string | null
   status: string
   createdAt: string
 }
@@ -105,7 +105,7 @@ export default function DashboardPage() {
   const getTransactionTypeIcon = (type: string) => {
     switch (type) {
       case 'topup':
-        return <GamepadIcon className="w-5 h-5 text-purple-400" />
+        return <GamepadIcon className="w-5 h-5 text-green-400" />
       case 'boost':
         return <Crown className="w-5 h-5 text-orange-400" />
       default:
@@ -195,7 +195,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-green-900 to-slate-900 flex items-center justify-center">
         <div className="text-white text-xl">Loading...</div>
       </div>
     )
@@ -206,20 +206,20 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-green-900 to-slate-900">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-white mb-2">
                             Selamat Datang, {(user as any).fullName || user.username}! 👋
           </h1>
-          <p className="text-purple-300">Kelola akun dan transaksi gaming Anda di sini</p>
+          <p className="text-green-300">Kelola akun dan transaksi gaming Anda di sini</p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Balance Card */}
-          <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-purple-500/20 p-6 hover:border-purple-500/40 transition-all duration-300">
+          <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-green-500/20 p-6 hover:border-green-500/40 transition-all duration-300">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-green-500/20 rounded-xl">
                 <Wallet className="w-6 h-6 text-green-400" />
@@ -234,10 +234,10 @@ export default function DashboardPage() {
           </div>
 
           {/* Total Spent Card */}
-          <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-purple-500/20 p-6 hover:border-purple-500/40 transition-all duration-300">
+          <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-green-500/20 p-6 hover:border-green-500/40 transition-all duration-300">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-purple-500/20 rounded-xl">
-                <ShoppingBag className="w-6 h-6 text-purple-400" />
+                <ShoppingBag className="w-6 h-6 text-green-400" />
               </div>
             </div>
             <div>
@@ -247,7 +247,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Transactions Count Card */}
-          <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-purple-500/20 p-6 hover:border-purple-500/40 transition-all duration-300">
+          <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-green-500/20 p-6 hover:border-green-500/40 transition-all duration-300">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-blue-500/20 rounded-xl">
                 <History className="w-6 h-6 text-blue-400" />
@@ -260,7 +260,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Member Since Card */}
-          <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-purple-500/20 p-6 hover:border-purple-500/40 transition-all duration-300">
+          <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-green-500/20 p-6 hover:border-green-500/40 transition-all duration-300">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 bg-yellow-500/20 rounded-xl">
                 <Star className="w-6 h-6 text-yellow-400" />
@@ -308,9 +308,9 @@ export default function DashboardPage() {
         {/* Profile Info & Transaction History */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Profile Info */}
-          <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-purple-500/20 p-6">
+          <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-green-500/20 p-6">
             <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-              <User className="w-6 h-6 text-purple-400 mr-3" />
+              <User className="w-6 h-6 text-green-400 mr-3" />
               Informasi Akun
             </h2>
             <div className="space-y-4">
@@ -345,7 +345,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Transaction History */}
-          <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-purple-500/20 p-6">
+          <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-green-500/20 p-6">
             <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
               <History className="w-6 h-6 text-blue-400 mr-3" />
               Riwayat Transaksi
@@ -355,7 +355,7 @@ export default function DashboardPage() {
               <div className="text-center py-8">
                 <CreditCard className="w-12 h-12 text-gray-500 mx-auto mb-4" />
                 <p className="text-gray-400 mb-4">Belum ada transaksi</p>
-                <Link href="/top-up" className="text-purple-400 hover:text-white transition-colors">
+                <Link href="/top-up" className="text-green-400 hover:text-white transition-colors">
                   Mulai transaksi pertama Anda →
                 </Link>
               </div>
@@ -365,7 +365,7 @@ export default function DashboardPage() {
                   <div 
                     key={transaction.id} 
                     onClick={() => handleViewInvoice(transaction)}
-                    className="bg-gray-800/30 rounded-lg p-4 border border-gray-600/30 hover:border-purple-500/50 cursor-pointer transition-all duration-300 hover:bg-gray-700/30"
+                    className="bg-gray-800/30 rounded-lg p-4 border border-gray-600/30 hover:border-green-500/50 cursor-pointer transition-all duration-300 hover:bg-gray-700/30"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center">
@@ -384,11 +384,11 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <div className="text-xs text-gray-500 mb-2">
-                      <p>Game: {transaction.gameId.toUpperCase()}</p>
-                      <p>User ID: {transaction.userGameId}</p>
+                      <p>Game: {transaction.gameId ? transaction.gameId.toUpperCase() : 'ADMIN'}</p>
+                      <p>User ID: {transaction.userGameId || '-'}</p>
                       <p>{new Date(transaction.createdAt).toLocaleString('id-ID')}</p>
                     </div>
-                    <div className="text-xs text-purple-400 font-medium">
+                    <div className="text-xs text-green-400 font-medium">
                       💡 Klik untuk lihat invoice dan kirim email
                     </div>
                   </div>
@@ -414,12 +414,12 @@ export default function DashboardPage() {
             customer: {
               name: (user as any)?.fullName || user?.username || 'User',
               email: user?.email || '',
-              gameEmail: selectedTransaction.email,
-              gameUserId: selectedTransaction.userGameId
+              gameEmail: selectedTransaction.email || '',
+              gameUserId: selectedTransaction.userGameId || ''
             },
             transaction: {
               type: selectedTransaction.type,
-              gameId: selectedTransaction.gameId,
+              gameId: selectedTransaction.gameId || 'ADMIN',
               itemId: selectedTransaction.itemId || undefined,
               serviceId: selectedTransaction.serviceId || undefined,
               amount: selectedTransaction.amount,

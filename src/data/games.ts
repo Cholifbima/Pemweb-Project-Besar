@@ -3,6 +3,7 @@ export interface Game {
   name: string
   category: 'moba' | 'battle-royale' | 'mmorpg' | 'fps' | 'card' | 'racing'
   icon: string
+  logo?: any // Added logo property for imported image assets
   banner: string
   description: string
   publisher: string

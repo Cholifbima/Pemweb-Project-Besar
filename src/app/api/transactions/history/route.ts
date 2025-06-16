@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getUserFromToken } from '@/lib/auth'
+import { getUserFromTokenLegacy } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,7 +21,7 @@ export async function GET(request: NextRequest) {
 
     console.log('🔍 Getting user from token...')
     // Get user from token
-    const userResult = await getUserFromToken(token)
+    const userResult = await getUserFromTokenLegacy(token)
     if (!userResult.success || !userResult.user) {
       console.log('❌ Invalid token or user not found')
       return NextResponse.json(

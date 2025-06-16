@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getUserFromToken } from '@/lib/auth'
+import { getUserFromTokenLegacy } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 
 export async function POST(request: NextRequest) {
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user from token
-    const userResult = await getUserFromToken(token)
+    const userResult = await getUserFromTokenLegacy(token)
     if (!userResult.success || !userResult.user) {
       return NextResponse.json(
         { error: 'Token tidak valid' },
