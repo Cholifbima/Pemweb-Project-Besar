@@ -24,7 +24,15 @@ function getDatabaseUrl(): string {
     return process.env.DATABASE_URL;
   }
 
-  // Priority 2: Build from individual Azure SQL variables
+  // Priority 2: Hardcoded Azure SQL connection for production (TEMPORARY FIX)
+  if (process.env.NODE_ENV === 'production') {
+    console.log('🔧 Using hardcoded Azure SQL connection for production');
+    // Use the connection string from your Azure Portal - replace with actual values
+    const azureConnectionString = 'sqlserver://doaibustore-sv.database.windows.net:1433;database=doaibustore-db;user=doaibustore-sv-admin;password=cholifbima123A;encrypt=true;trustServerCertificate=false;connectionTimeout=30;';
+    return azureConnectionString;
+  }
+
+  // Priority 3: Build from individual Azure SQL variables (fallback)
   if (process.env.AZURE_SQL_SERVER && process.env.AZURE_SQL_USERNAME && process.env.AZURE_SQL_PASSWORD && process.env.AZURE_SQL_DATABASE) {
     const server = process.env.AZURE_SQL_SERVER;
     const username = process.env.AZURE_SQL_USERNAME;
@@ -39,20 +47,19 @@ function getDatabaseUrl(): string {
     console.log('- Port:', port);
     
     // Use the correct format for Azure SQL Database with Prisma
-    // Format: sqlserver://server.database.windows.net:1433;database=mydb;user=myuser@myserver;password=mypassword;encrypt=true;trustServerCertificate=false;connectionTimeout=30;
     const connectionString = `sqlserver://${server}:${port};database=${database};user=${username};password=${password};encrypt=true;trustServerCertificate=false;connectionTimeout=30;`;
     
     console.log('🔗 Azure SQL Connection String (masked):', connectionString.replace(password, '***'));
     return connectionString;
   }
   
-  // Priority 3: Local development dengan SQLite
+  // Priority 4: Local development dengan SQLite
   if (process.env.NODE_ENV === 'development') {
     console.log('🔧 Using development SQLite database');
     return "file:./dev.db";
   }
   
-  // Priority 4: Build-time fallback
+  // Priority 5: Build-time fallback
   console.log('⚠️ Using build-time fallback');
   return "file:./fallback.db";
 }
