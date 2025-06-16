@@ -201,9 +201,9 @@ export default function GameTopUpPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white overflow-x-hidden">
       {/* Main Content with Gradient Background */}
-              <div className="bg-gradient-to-br from-slate-900 via-green-900 to-slate-900">
+      <div className="bg-gradient-to-br from-slate-900 via-green-900 to-slate-900">
         {/* Header */}
         <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
           <Link 

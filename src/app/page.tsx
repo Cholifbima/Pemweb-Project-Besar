@@ -112,9 +112,7 @@ export default function Home() {
   ]
 
   return (
-    <main className={`min-h-screen bg-black text-white transition-all duration-300 ease-in-out ${
-      isMobileMenuOpen ? 'md:ml-0 ml-[40%]' : 'ml-0'
-    }`}>
+    <main className="min-h-screen bg-black text-white overflow-x-hidden">
       {/* Main Content with Gradient Background */}
       <div className="bg-gradient-to-b from-green-900/40 via-green-800/20 to-black">
         {/* 3. Banner Carousel */}
@@ -134,6 +132,7 @@ export default function Home() {
                         alt={banner.alt}
                         fill
                         className="object-cover rounded-xl"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
                       />
                     </div>
                   </div>
@@ -181,7 +180,7 @@ export default function Home() {
                 💫 Silahkan Temukan Game Kamu Di PENCARIAN 🔍
               </h2>
               
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-6">
                 {gameList.map((game) => (
                   <Link key={game.id} href={`/top-up/${game.id}`}>
                     <div className="bg-gray-800/50 border border-gray-700 rounded-lg overflow-hidden shadow-lg hover:shadow-green-500/20 hover:border-green-500/50 transition-all duration-300 group">
@@ -193,6 +192,7 @@ export default function Home() {
                             alt={game.name}
                             fill
                             className="object-cover p-2"
+                            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
                           />
                         </div>
                         {/* New hover effect, completely hidden until hover - same as joki */}
@@ -220,7 +220,7 @@ export default function Home() {
                 Jasa Joki Game
               </h2>
               
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-6">
                 {jokiGames.slice(0, 7).map((game) => (
                   <Link key={game.id} href={`/boost-services/${game.id}`}>
                     <div className="bg-gray-800/50 border border-gray-700 rounded-lg overflow-hidden shadow-lg hover:shadow-yellow-400/20 hover:border-yellow-400/50 transition-all duration-300 group">
@@ -232,6 +232,7 @@ export default function Home() {
                             alt={game.name}
                             fill
                             className="object-cover p-2"
+                            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
                           />
                         </div>
                         {/* New hover effect, completely hidden until hover */}
@@ -254,14 +255,14 @@ export default function Home() {
         </div>
           
         {/* Full-width Banner after joki section with gradient background to match above sections */}
-        <div className="w-full relative bg-gradient-to-b from-green-900/10 to-black">
-          <div className="w-full max-w-7xl mx-auto">
+        <div className="w-full relative bg-gradient-to-b from-green-900/10 to-black overflow-hidden">
+          <div className="w-full max-w-7xl mx-auto px-4">
             <Image 
               src={banner.src} 
               alt="DoaIbu Store Banner"
               width={0}
               height={0}
-              sizes="100vw"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 80vw"
               className="w-full h-auto object-contain max-h-96 md:max-h-[500px]"
               priority
             />

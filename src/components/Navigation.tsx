@@ -23,6 +23,7 @@ export default function Navigation() {
   useEffect(() => {
     if (isMobileMenuOpen) {
       // Apply multiple techniques to fully prevent scrolling
+      document.body.classList.add('sidebar-open')
       document.body.style.overflow = 'hidden'
       document.body.style.position = 'fixed'
       document.body.style.width = '100%'
@@ -31,6 +32,7 @@ export default function Navigation() {
     } else {
       // Restore scrolling
       const scrollY = document.body.style.top
+      document.body.classList.remove('sidebar-open')
       document.body.style.overflow = ''
       document.body.style.position = ''
       document.body.style.width = ''
@@ -45,6 +47,7 @@ export default function Navigation() {
     
     // Cleanup function to restore scrolling when component unmounts
     return () => {
+      document.body.classList.remove('sidebar-open')
       document.body.style.overflow = ''
       document.body.style.position = ''
       document.body.style.width = ''
@@ -133,7 +136,7 @@ export default function Navigation() {
   ]
 
   return (
-    <nav className={`bg-dark-800/80 backdrop-blur-md border-b border-dark-700/50 sticky top-0 z-50 transition-all duration-300 ${isMobileMenuOpen ? 'md:ml-0 ml-[40%]' : ''}`} style={{ padding: 0 }}>
+    <nav className="bg-dark-800/80 backdrop-blur-md border-b border-dark-700/50 sticky top-0 z-50 transition-all duration-300" style={{ padding: 0 }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}

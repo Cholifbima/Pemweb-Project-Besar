@@ -105,9 +105,7 @@ export default function TopUpPage() {
   }
 
   return (
-    <div className={`min-h-screen bg-black text-white transition-all duration-300 ease-in-out ${
-      isMobileMenuOpen ? 'md:ml-0 ml-[40%]' : 'ml-0'
-    }`}>
+    <div className="min-h-screen bg-black text-white overflow-x-hidden">
       {/* Main Content with Modern Gradient Background */}
       <div className="bg-gradient-to-br from-slate-900 via-green-900 to-slate-900">
         {/* Hero Section with Animated Slider */}
