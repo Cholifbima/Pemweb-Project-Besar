@@ -8,6 +8,28 @@ console.log('🚀 Starting DoaIbu Store on Azure...')
 async function setupApplication() {
   console.log('🔧 Setting up application...')
   
+  // Run Azure deployment fix script
+  try {
+    console.log('🔧 Running Azure deployment fix...')
+    const { exec } = require('child_process')
+    await new Promise((resolve, reject) => {
+      exec('node scripts/azure-deployment-fix.js', (error, stdout, stderr) => {
+        if (stdout) console.log(stdout)
+        if (stderr) console.error(stderr)
+        if (error) {
+          console.error('❌ Azure fix script failed:', error)
+          // Don't fail startup for this
+          resolve()
+        } else {
+          console.log('✅ Azure deployment fix completed')
+          resolve()
+        }
+      })
+    })
+  } catch (error) {
+    console.error('⚠️ Azure fix script error (continuing anyway):', error)
+  }
+  
   // Switch to Azure SQL Server schema if needed
   try {
     console.log('🔄 Switching to Azure SQL Server schema...')
