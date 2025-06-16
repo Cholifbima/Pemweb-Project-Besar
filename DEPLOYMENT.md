@@ -42,10 +42,15 @@ SIGNALR_CONNECTION_STRING=[Your Azure SignalR Connection String]
 
 #### 🌐 Azure App Service
 ```
-AZURE_APP_NAME=[Your Azure App Service Name]
-AZURE_APP_URL=https://[your-app-name].azurewebsites.net
-AZURE_PUBLISH_PROFILE=[Your Azure App Service Publish Profile]
-MIGRATION_SECRET=[Random secret for migration endpoint]
+AZURE_APP_NAME=doaibustore
+AZURE_APP_URL=https://doaibustore.azurewebsites.net
+AZURE_PUBLISH_PROFILE=[Your Azure App Service Publish Profile - dari Azure Portal]
+MIGRATION_SECRET=[Random secret for migration endpoint - opsional]
+```
+
+#### 📋 Legacy Secrets (jika menggunakan workflow lama)
+```
+AZUREAPPSERVICE_PUBLISHPROFILE=[Same as AZURE_PUBLISH_PROFILE]
 ```
 
 ### 📥 How to Get Azure Publish Profile

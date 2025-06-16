@@ -3,8 +3,7 @@ name: Deploy to Azure App Service
 on:
   push:
     branches: [ master ]
-  pull_request:
-    branches: [ master ]
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
@@ -20,14 +19,19 @@ jobs:
         node-version: '18'
         cache: 'npm'
 
-    - name: 📦 Install dependencies
-      run: npm ci
-
-    - name: 🔧 Generate Prisma Client
-      run: npx prisma generate
-
-    - name: 🏗️ Build Next.js application
-      run: npm run build
+    - name: 📦 Install dependencies and build
+      run: |
+        echo "📦 Installing dependencies..."
+        npm ci
+        
+        echo "🔄 Switching to Azure SQL Server schema..."
+        node scripts/switch-db.js azure
+        
+        echo "🔧 Generating Prisma client..."
+        npx prisma generate
+        
+        echo "🏗️ Building Next.js application..."
+        npm run build
       env:
         # Environment variables for build
         JWT_SECRET: ${{ secrets.JWT_SECRET }}
@@ -52,21 +56,18 @@ jobs:
 
     - name: 📁 Create deployment package
       run: |
-        # Create a clean deployment directory
-        mkdir -p deployment
+        echo "📦 Creating deployment package (Azure will handle npm install)..."
         
-        # Copy essential files for deployment
-        cp -r .next deployment/
-        cp -r public deployment/
-        cp -r prisma deployment/
-        cp package*.json deployment/
-        cp next.config.js deployment/
+        # Remove node_modules to speed up deployment (Azure will reinstall)
+        rm -rf node_modules
         
-        # Copy node_modules (required for Azure App Service)
-        cp -r node_modules deployment/
+        # Copy server.js to root if it exists
+        if [ -f "server.js" ]; then
+          echo "✅ server.js found for Azure App Service"
+        fi
         
         # Create web.config for Azure App Service
-        cat > deployment/web.config << 'EOF'
+        cat > web.config << 'EOF'
         <?xml version="1.0" encoding="utf-8"?>
         <configuration>
           <system.webServer>
@@ -75,12 +76,6 @@ jobs:
             </handlers>
             <rewrite>
               <rules>
-                <rule name="NodeInspector" patternSyntax="ECMAScript" stopProcessing="true">
-                  <match url="^server.js\/debug[\/]?" />
-                </rule>
-                <rule name="StaticContent">
-                  <action type="Rewrite" url="public{REQUEST_URI}"/>
-                </rule>
                 <rule name="DynamicContent">
                   <conditions>
                     <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="True"/>
@@ -89,25 +84,32 @@ jobs:
                 </rule>
               </rules>
             </rewrite>
-            <security>
-              <requestFiltering>
-                <hiddenSegments>
-                  <remove segment="bin"/>
-                </hiddenSegments>
-              </requestFiltering>
-            </security>
-            <httpErrors existingResponse="PassThrough" />
-            <iisnode watchedFiles="web.config;*.js"/>
+            <iisnode 
+              node_env="production"
+              nodeProcessCountPerApplication="1"
+              maxConcurrentRequestsPerProcess="1024"
+              watchedFiles="*.js"
+              loggingEnabled="true"
+              logDirectory="iisnode"
+            />
+            <environmentVariables>
+              <add name="SCM_DO_BUILD_DURING_DEPLOYMENT" value="true" />
+              <add name="WEBSITE_NODE_DEFAULT_VERSION" value="18.x" />
+            </environmentVariables>
           </system.webServer>
         </configuration>
         EOF
+        
+        echo "📁 Package ready for deployment ($(du -sh . | cut -f1)):"
+        ls -la
 
     - name: 🚀 Deploy to Azure App Service
-      uses: azure/webapps-deploy@v2
+      uses: azure/webapps-deploy@v3
       with:
         app-name: ${{ secrets.AZURE_APP_NAME }}
+        slot-name: 'Production'
         publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
-        package: ./deployment
+        package: .
 
     - name: 🔄 Run Prisma migrations on Azure
       run: |
