@@ -1,0 +1,144 @@
+// This is your Prisma schema file for SQL Server (Azure production),
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int      @id @default(autoincrement())
+  email       String   @unique
+  username    String   @unique
+  password    String
+  fullName    String?
+  phoneNumber String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Gaming related fields
+  favoriteGames String?  // Store as JSON string
+  totalSpent    Float    @default(0)
+  balance       Float    @default(1000000) // Demo balance 1 juta rupiah
+  
+  // Relations
+  orders        Order[]
+  transactions  Transaction[]
+  chatSessions  ChatSession[]
+  
+  @@map("users")
+}
+
+model Order {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  gameId      String
+  gameName    String
+  serviceType String   // "topup" or "boost"
+  packageName String
+  price       Float
+  status      String   @default("pending") // pending, processing, completed, failed
+  paymentId   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("orders")
+}
+
+model Transaction {
+  id          String   @id @default(cuid()) // Custom transaction ID like TRX123456789ABCDE
+  userId      Int
+  type        String   // "topup", "boost", "DEPOSIT", "ADMIN_ADJUSTMENT"
+  gameId      String?
+  itemId      String?  // For top-up items
+  serviceId   String?  // For boost services
+  amount      Float
+  userGameId  String?  // User's game ID
+  email       String?  // Email for transaction
+  description String?  // Description for admin actions
+  status      String   @default("pending") // pending, completed, failed, SUCCESS
+  adminId     Int?     // Admin who processed this transaction
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  admin       Admin?   @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  
+  @@map("transactions")
+}
+
+model Game {
+  id          String   @id
+  name        String
+  category    String
+  icon        String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("games")
+}
+
+model Admin {
+  id          Int      @id @default(autoincrement())
+  username    String   @unique
+  password    String
+  role        String   @default("admin") // admin, super_admin
+  isActive    Boolean  @default(true)
+  isOnline    Boolean  @default(false) // Online status for real-time chat
+  lastLogin   DateTime?
+  lastSeen    DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  chatSessions ChatSession[]
+  transactions Transaction[]
+  chatMessages ChatMessage[]
+  
+  @@map("admins")
+}
+
+model ChatSession {
+  id          Int      @id @default(autoincrement())
+  userId      Int      // User ID (we'll require login for live chat)
+  status      String   @default("active") // active, closed, waiting
+  assignedTo  Int?     // Admin ID
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  admin       Admin?   @relation(fields: [assignedTo], references: [id], onDelete: SetNull)
+  messages    ChatMessage[]
+  
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id          Int         @id @default(autoincrement())
+  sessionId   Int
+  content     String
+  isFromUser  Boolean     @default(true) // true for user, false for admin
+  adminId     Int?        // Admin who sent this message (if from admin)
+  isRead      Boolean     @default(false)
+  messageType String      @default("text") // text, file, image
+  fileUrl     String?     // Azure Blob Storage URL
+  fileName    String?     // Original file name
+  fileSize    Int?        // File size in bytes
+  createdAt   DateTime    @default(now())
+  
+  // Relations
+  session     ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  admin       Admin?      @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  
+  @@map("chat_messages")
+} 

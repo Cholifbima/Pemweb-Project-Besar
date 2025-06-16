@@ -9,7 +9,7 @@ generator client {
 }
 
 datasource db {
-  provider = env("DATABASE_PROVIDER") != null ? env("DATABASE_PROVIDER") : "sqlite"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -102,7 +102,7 @@ model Admin {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
-  // Relations - Remove ChatMessage relation to break cycle
+  // Relations
   chatSessions ChatSession[]
   transactions Transaction[]
   chatMessages ChatMessage[]

@@ -14,7 +14,7 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:seed": "node prisma/seed.js",
-    "postinstall": "prisma generate"
+    "postinstall": "node scripts/azure-startup.js && prisma generate"
   },
   "dependencies": {
     "@azure/ai-form-recognizer": "^5.1.0",
