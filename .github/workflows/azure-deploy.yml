@@ -102,5 +102,4 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'doaibustore'
-          slot-name: 'Production'
           package: . 
