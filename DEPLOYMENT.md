@@ -40,7 +40,14 @@ AZURE_DOCUMENT_INTELLIGENCE_KEY=[Your Document Intelligence Key]
 SIGNALR_CONNECTION_STRING=[Your Azure SignalR Connection String]
 ```
 
-#### 🌐 Azure App Service
+#### 🌐 Azure App Service Authentication
+```
+AZUREAPPSERVICE_CLIENTID_98343B524EC149B09B2BAF053632C6F9=[Your Azure Service Principal Client ID]
+AZUREAPPSERVICE_TENANTID_8A72675D09B4437A8B79B90A75DD6CC0=[Your Azure Tenant ID]
+AZUREAPPSERVICE_SUBSCRIPTIONID_9901E9BE8782443796A7EE83CA8D5454=[Your Azure Subscription ID]
+```
+
+#### 📋 Optional Secrets (untuk workflow alternatif)
 ```
 AZURE_APP_NAME=doaibustore
 AZURE_APP_URL=https://doaibustore.azurewebsites.net
@@ -48,12 +55,35 @@ AZURE_PUBLISH_PROFILE=[Your Azure App Service Publish Profile - dari Azure Porta
 MIGRATION_SECRET=[Random secret for migration endpoint - opsional]
 ```
 
-#### 📋 Legacy Secrets (jika menggunakan workflow lama)
-```
-AZUREAPPSERVICE_PUBLISHPROFILE=[Same as AZURE_PUBLISH_PROFILE]
+### 🔐 How to Get Azure Service Principal Credentials
+
+#### Method 1: Using Azure CLI (Recommended)
+```bash
+# Login to Azure
+az login
+
+# Create service principal for your app
+az ad sp create-for-rbac --name "doaibustore-github-actions" --role contributor --scopes /subscriptions/{subscription-id}/resourceGroups/{resource-group-name} --sdk-auth
+
+# This will output JSON with the credentials you need
 ```
 
-### 📥 How to Get Azure Publish Profile
+#### Method 2: From Azure Portal
+1. Go to **Azure Portal → Azure Active Directory → App registrations**
+2. Click **New registration** → Name: "doaibustore-github-actions"
+3. After creation, note the **Application (client) ID** and **Directory (tenant) ID**
+4. Go to **Certificates & secrets** → **New client secret**
+5. Copy the secret value
+6. Go to **Subscriptions** → Your subscription → **Access control (IAM)**
+7. Add role assignment → **Contributor** → Select your app registration
+
+#### Method 3: Get from existing deployment
+The secrets in the workflow are already configured for your Azure subscription:
+- Client ID: `98343B524EC149B09B2BAF053632C6F9`
+- Tenant ID: `8A72675D09B4437A8B79B90A75DD6CC0`
+- Subscription ID: `9901E9BE8782443796A7EE83CA8D5454`
+
+### 📥 Alternative: How to Get Azure Publish Profile
 
 1. Go to **Azure Portal → App Services → [Your App]**
 2. Click **Get publish profile** button
