@@ -1,3 +1,6 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
 name: Build and deploy Node.js app to Azure Web App - doaibustore
 
 on:
@@ -9,6 +12,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read #This is required for actions/checkout
 
     steps:
       - uses: actions/checkout@v4
@@ -16,138 +21,40 @@ jobs:
       - name: Set up Node.js version
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22.x'
           cache: 'npm'
 
-      - name: Create environment file for build
+      - name: npm install, build, and test
+        env:
+          DATABASE_URL: "sqlserver://build:temp@localhost:1433;database=temp;user=temp;password=temp;encrypt=true;"
+          JWT_SECRET: "build-time-secret"
+          NEXTAUTH_SECRET: "build-time-nextauth-secret"
+          NEXTAUTH_URL: "https://doaibustore.site"
+          NODE_ENV: "production"
         run: |
-          echo "NODE_ENV=production" >> .env
-          echo "DATABASE_URL=file:./dev.db" >> .env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-          echo "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}" >> .env
-          echo "NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}" >> .env
-          echo "AZURE_OPENAI_API_KEY=${{ secrets.AZURE_OPENAI_API_KEY }}" >> .env
-          echo "AZURE_OPENAI_ENDPOINT=${{ secrets.AZURE_OPENAI_ENDPOINT }}" >> .env
-          echo "AZURE_AI_FORM_RECOGNIZER_ENDPOINT=${{ secrets.AZURE_AI_FORM_RECOGNIZER_ENDPOINT }}" >> .env
-          echo "AZURE_AI_FORM_RECOGNIZER_KEY=${{ secrets.AZURE_AI_FORM_RECOGNIZER_KEY }}" >> .env
-          echo "AZURE_STORAGE_ACCOUNT_NAME=${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}" >> .env
-          echo "AZURE_STORAGE_ACCOUNT_KEY=${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}" >> .env
-          echo "AZURE_STORAGE_CONTAINER_NAME=${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}" >> .env
-          echo "RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}" >> .env
-          echo "EMAIL_FROM=${{ secrets.EMAIL_FROM }}" >> .env
+          npm ci
+          npm run build
+          
+          # Verify build output
+          ls -la .next || echo ".next folder not created"
+          
+          # List build output
+          echo "Build completed. Checking output:"
+          ls -la
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build application
-        run: npm run build
-
-      - name: Create deployment package
+      - name: Zip artifact for deployment
         run: |
-          # Create temp directory for deployment
-          mkdir -p deployment
+          # Remove node_modules to avoid size issues
+          rm -rf node_modules
           
-          # Copy necessary files
-          cp -r .next deployment/
-          cp -r public deployment/
-          cp -r prisma deployment/
-          cp package*.json deployment/
-          cp -r node_modules deployment/
-          cp -r scripts deployment/
-          
-          # Create web.config for Azure
-          cat > deployment/web.config << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <configuration>
-            <system.webServer>
-              <handlers>
-                <add name="iisnode" path="server.js" verb="*" modules="iisnode"/>
-              </handlers>
-              <rewrite>
-                <rules>
-                  <rule name="StaticContent">
-                    <action type="Rewrite" url="public{REQUEST_URI}"/>
-                  </rule>
-                  <rule name="DynamicContent">
-                    <conditions>
-                      <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="True"/>
-                    </conditions>
-                    <action type="Rewrite" url="server.js"/>
-                  </rule>
-                </rules>
-              </rewrite>
-              <security>
-                <requestFiltering removeServerHeader="true"/>
-              </security>
-              <httpErrors existingResponse="PassThrough" />
-              <iisnode node_env="%node_env%" 
-                       nodeProcessCountPerApplication="1"
-                       maxConcurrentRequestsPerProcess="1024"
-                       maxNamedPipeConnectionRetry="100"
-                       namedPipeConnectionRetryDelay="250"
-                       maxNamedPipeConnectionPoolSize="512"
-                       maxNamedPipePooledConnectionAge="30000"
-                       asyncCompletionThreadCount="0"
-                       initialRequestBufferSize="4096"
-                       maxRequestBufferSize="65536"
-                       watchedFiles="*.js;iisnode.yml"
-                       uncFileChangesPollingInterval="5000"
-                       gracefulShutdownTimeout="60000"
-                       loggingEnabled="true"
-                       logDirectory="iisnode"
-                       debuggingEnabled="false"
-                       debugHeaderEnabled="false"
-                       debuggerPortRange="5058-6058"
-                       debuggerPathSegment="debug"
-                       maxLogFileSizeInKB="128"
-                       maxTotalLogFileSizeInKB="1024"
-                       maxLogFiles="20"
-                       devErrorsEnabled="false"
-                       flushResponse="false"
-                       enableXFF="false"
-                       promoteServerVars=""
-                       configOverrides="iisnode.yml"
-                       recycleSignalEnabled="false"
-                       idlePageOutTimePeriod="0" />
-            </system.webServer>
-          </configuration>
-          EOF
-          
-          # Create server.js for Azure
-          cat > deployment/server.js << 'EOF'
-          const { createServer } = require('http')
-          const { parse } = require('url')
-          const next = require('next')
-          
-          const dev = process.env.NODE_ENV !== 'production'
-          const hostname = process.env.WEBSITE_HOSTNAME || 'localhost'
-          const port = process.env.PORT || 3000
-          
-          const app = next({ dev, hostname, port })
-          const handle = app.getRequestHandler()
-          
-          app.prepare().then(() => {
-            createServer(async (req, res) => {
-              try {
-                const parsedUrl = parse(req.url, true)
-                await handle(req, res, parsedUrl)
-              } catch (err) {
-                console.error('Error occurred handling', req.url, err)
-                res.statusCode = 500
-                res.end('internal server error')
-              }
-            }).listen(port, (err) => {
-              if (err) throw err
-              console.log(`> Ready on http://${hostname}:${port}`)
-            })
-          })
-          EOF
+          # Create zip with essential files only
+          zip -r release.zip . -x "*.git*" "node_modules/*" ".env*" "*.log" "coverage/*" ".nyc_output/*"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: deployment
+          path: release.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -155,6 +62,9 @@ jobs:
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    permissions:
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
 
     steps:
       - name: Download artifact from build job
@@ -162,11 +72,20 @@ jobs:
         with:
           name: node-app
 
+      - name: Unzip artifact for deployment
+        run: unzip release.zip
+      
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_98343B524EC149B09B2BAF053632C6F9 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_8A72675D09B4437A8B79B90A75DD6CC0 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_9901E9BE8782443796A7EE83CA8D5454 }}
+
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
-        uses: azure/webapps-deploy@v2
+        uses: azure/webapps-deploy@v3
         with:
           app-name: 'doaibustore'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
-          package: . 
+          package: release.zip 
