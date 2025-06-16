@@ -26,14 +26,14 @@ jobs:
 
       - name: npm install, build, and test
         env:
-          DATABASE_URL: "sqlserver://build:temp@localhost:1433;database=temp;user=temp;password=temp;encrypt=true;"
+          DATABASE_URL: "file:./dev.db"
           JWT_SECRET: "build-time-secret"
           NEXTAUTH_SECRET: "build-time-nextauth-secret"
           NEXTAUTH_URL: "https://doaibustore.site"
           NODE_ENV: "production"
         run: |
           npm ci
-          npm run build
+          npm run build:azure
           
           # Verify build output
           ls -la .next || echo ".next folder not created"
