@@ -44,9 +44,6 @@ jobs:
           echo "📦 Installing dependencies..."
           npm ci
           
-          echo "🔄 Switching to Azure SQL Server schema..."
-          node scripts/switch-db.js azure
-          
           echo "🔧 Generating Prisma client..."
           npx prisma generate
           
