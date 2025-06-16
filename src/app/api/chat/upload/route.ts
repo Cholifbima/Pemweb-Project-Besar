@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserFromToken } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db'
 import { BlobServiceClient } from '@azure/storage-blob'
 import { v4 as uuidv4 } from 'uuid'
 

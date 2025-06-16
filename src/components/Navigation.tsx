@@ -58,6 +58,11 @@ export default function Navigation() {
     
     try {
       await fetch('/api/auth/logout', { method: 'POST' })
+      
+      // Clear localStorage token for chat functionality
+      localStorage.removeItem('token')
+      console.log('✅ Token removed from localStorage')
+      
       setUser(null)
       
       showToast.success('Logout berhasil! Sampai jumpa lagi 👋')

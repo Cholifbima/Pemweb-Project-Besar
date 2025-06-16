@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import jwt from 'jsonwebtoken'
+import { JWT_SECRET } from '@/lib/auth'
 
 const prisma = new PrismaClient()
 
@@ -24,7 +25,7 @@ export async function GET(
     }
 
     const token = authHeader.substring(7)
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any
+    const decoded = jwt.verify(token, JWT_SECRET) as any
     
     // Check if admin exists
     const admin = await prisma.admin.findUnique({

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db'
 import jwt from 'jsonwebtoken'
+import { JWT_SECRET } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,7 +15,7 @@ export async function POST(request: NextRequest) {
     let decoded: any
 
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET!)
+      decoded = jwt.verify(token, JWT_SECRET)
     } catch (error) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }

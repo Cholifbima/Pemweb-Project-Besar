@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Browser Cache & Tokens</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 600px; 
+            margin: 50px auto; 
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        button {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover { background: #cc3333; }
+        .success { color: #22aa22; font-weight: bold; }
+        .info { color: #666; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 Clear Browser Cache & JWT Tokens</h1>
+        <p class="info">This will clear all stored JWT tokens and cache to fix authentication issues.</p>
+        
+        <button onclick="clearAll()">🔥 Clear All Cache & Tokens</button>
+        <button onclick="window.location.href='http://localhost:3000'">🏠 Go to Homepage</button>
+        
+        <div id="result"></div>
+        
+        <div class="info">
+            <h3>What this clears:</h3>
+            <ul style="text-align: left;">
+                <li>localStorage (JWT tokens)</li>
+                <li>sessionStorage (temporary data)</li>
+                <li>Browser cache</li>
+                <li>Cookies</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function clearAll() {
+            try {
+                // Clear localStorage
+                localStorage.clear();
+                console.log('✅ localStorage cleared');
+                
+                // Clear sessionStorage
+                sessionStorage.clear();
+                console.log('✅ sessionStorage cleared');
+                
+                // Clear cookies
+                document.cookie.split(";").forEach(function(c) { 
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                });
+                console.log('✅ Cookies cleared');
+                
+                // Show success message
+                document.getElementById('result').innerHTML = `
+                    <div class="success">
+                        <h2>✅ SUCCESS!</h2>
+                        <p>All cache and tokens cleared!</p>
+                        <p>You can now login with fresh tokens.</p>
+                        <p><strong>Admin Accounts:</strong></p>
+                        <ul style="text-align: left;">
+                            <li>Cholif / Cholif123 (Super Admin)</li>
+                            <li>Havizhan / Havizhan123 (Admin)</li>
+                            <li>Fathan / Fathan123 (Admin)</li>
+                        </ul>
+                    </div>
+                `;
+                
+                // Auto redirect after 3 seconds
+                setTimeout(() => {
+                    window.location.href = 'http://localhost:3000';
+                }, 3000);
+                
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+                    <div style="color: red;">
+                        <h2>❌ Error</h2>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Auto-clear on page load
+        window.onload = function() {
+            console.log('🧹 Browser cache cleaner loaded');
+            console.log('Current localStorage items:', Object.keys(localStorage));
+            console.log('Current sessionStorage items:', Object.keys(sessionStorage));
+        };
+    </script>
+</body>
+</html> 

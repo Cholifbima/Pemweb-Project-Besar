@@ -4,7 +4,7 @@ import { prisma, createUserSafely } from './db';
 import { NextRequest } from 'next/server';
 
 // JWT Secret - in production this should be in environment variables
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+export const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 export interface UserPayload {
   id: number;

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/db'
+import { JWT_SECRET } from '@/lib/auth'
 import jwt from 'jsonwebtoken'
-
-const prisma = new PrismaClient()
 
 export const dynamic = 'force-dynamic'
 
@@ -15,7 +14,7 @@ export async function GET(request: NextRequest) {
     }
 
     const token = authHeader.substring(7)
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any
+    const decoded = jwt.verify(token, JWT_SECRET) as any
     
     // Check if user exists
     const user = await prisma.user.findUnique({

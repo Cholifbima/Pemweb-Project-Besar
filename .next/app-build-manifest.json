@@ -16,10 +16,40 @@
       "static/chunks/main-app.js",
       "static/chunks/app/not-found.js"
     ],
+    "/login/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/login/page.js"
+    ],
+    "/register/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/register/page.js"
+    ],
     "/dashboard/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/dashboard/page.js"
+    ],
+    "/admin/login/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/admin/login/page.js"
+    ],
+    "/admin/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/admin/layout.js"
+    ],
+    "/admin/dashboard/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/admin/dashboard/page.js"
+    ],
+    "/admin/chat/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/admin/chat/page.js"
     ],
     "/_not-found/page": [
       "static/chunks/webpack.js",
@@ -31,20 +61,10 @@
       "static/chunks/main-app.js",
       "static/chunks/app/top-up/page.js"
     ],
-    "/boost-services/page": [
+    "/admin/users/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/boost-services/page.js"
-    ],
-    "/boost-services/[gameId]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/boost-services/[gameId]/page.js"
-    ],
-    "/top-up/[gameId]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/top-up/[gameId]/page.js"
+      "static/chunks/app/admin/users/page.js"
     ]
   }
 }

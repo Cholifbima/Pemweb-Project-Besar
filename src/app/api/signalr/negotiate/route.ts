@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import jwt from 'jsonwebtoken'
+import { JWT_SECRET } from '@/lib/auth'
 
 const connectionString = process.env.AZURE_SIGNALR_CONNECTION_STRING
 
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
     if (authHeader && authHeader.startsWith('Bearer ')) {
       try {
         const token = authHeader.substring(7)
-        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any
+        const decoded = jwt.verify(token, JWT_SECRET) as any
         userId = decoded.id.toString()
       } catch (error) {
         console.log('Invalid token, using anonymous user')

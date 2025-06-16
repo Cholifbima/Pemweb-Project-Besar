@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/db'
+import { JWT_SECRET } from '@/lib/auth'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
         username: admin.username, 
         role: admin.role 
       },
-      process.env.JWT_SECRET!,
+      JWT_SECRET,
       { expiresIn: '24h' }
     )
 

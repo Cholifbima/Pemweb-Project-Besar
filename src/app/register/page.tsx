@@ -79,6 +79,11 @@ export default function RegisterPage() {
         throw new Error(data.error || 'Registrasi gagal');
       }
 
+      // Store token in localStorage (same as login)
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
+
       // Show success toast
       showToast.success('🎉 Registrasi berhasil! Saldo demo Rp 1.000.000 telah ditambahkan ke akun Anda');
 

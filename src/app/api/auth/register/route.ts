@@ -62,21 +62,24 @@ export async function POST(request: NextRequest) {
       username: result.user!.username,
     });
 
-    // Create response with user data
+    // Create response with user data and token (same as login)
     const response = NextResponse.json(
       { 
+        success: true,
         message: 'Registrasi berhasil! Saldo demo Rp 1.000.000 telah ditambahkan ke akun Anda.',
+        token: token,
         user: result.user 
       },
       { status: 201 }
     );
 
-    // Set HTTP-only cookie for authentication
+    // Set HTTP-only cookie for authentication (same as login)
     response.cookies.set('auth-token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: '/',
     });
 
     return response;

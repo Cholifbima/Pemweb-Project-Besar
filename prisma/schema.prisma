@@ -1,6 +1,4 @@
-// This is your Prisma schema file for SQL Server (Azure production),
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
+// Azure SQL Server schema for production deployment
 generator client {
   provider = "prisma-client-js"
 }
@@ -101,8 +99,8 @@ model Admin {
   
   // Relations
   chatSessions ChatSession[]
-  transactions Transaction[]
   chatMessages ChatMessage[]
+  transactions Transaction[]
   
   @@map("admins")
 }
@@ -128,7 +126,7 @@ model ChatMessage {
   sessionId   Int
   content     String
   isFromUser  Boolean     @default(true) // true for user, false for admin
-  adminId     Int?        // Admin who sent this message (if from admin)
+  adminId     Int?        // For admin messages
   isRead      Boolean     @default(false)
   messageType String      @default("text") // text, file, image
   fileUrl     String?     // Azure Blob Storage URL

@@ -40,12 +40,21 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
   const checkAuthStatus = async () => {
     try {
+      // Check if we have a token in localStorage first
+      const token = localStorage.getItem('token')
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      }
+      
+      // Add Authorization header if token exists
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
       const response = await fetch('/api/auth/me', {
         method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        credentials: 'include', // Still include cookies as fallback
+        headers,
       })
       
       if (response.ok) {

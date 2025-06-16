@@ -8,8 +8,19 @@ export async function GET(request: NextRequest) {
     const { getUserFromTokenLegacy } = await import('@/lib/auth');
     const { prisma } = await import('@/lib/db');
 
-    // Get token from cookie
-    const token = request.cookies.get('auth-token')?.value;
+    // Get token from Authorization header or cookie
+    let token = null;
+    
+    // First try Authorization header
+    const authHeader = request.headers.get('authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    }
+    
+    // Fallback to cookie if no Authorization header
+    if (!token) {
+      token = request.cookies.get('auth-token')?.value;
+    }
 
     if (!token) {
       return NextResponse.json(

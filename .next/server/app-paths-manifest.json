@@ -1,9 +1,23 @@
 {
   "/page": "app/page.js",
-  "/top-up/page": "app/top-up/page.js",
-  "/boost-services/page": "app/boost-services/page.js",
-  "/boost-services/[gameId]/page": "app/boost-services/[gameId]/page.js",
-  "/top-up/[gameId]/page": "app/top-up/[gameId]/page.js",
+  "/login/page": "app/login/page.js",
+  "/register/page": "app/register/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/api/auth/me/route": "app/api/auth/me/route.js",
+  "/api/chat/admins/route": "app/api/chat/admins/route.js",
+  "/api/chat/recent/[adminId]/route": "app/api/chat/recent/[adminId]/route.js",
+  "/api/transactions/history/route": "app/api/transactions/history/route.js",
+  "/api/auth/register/route": "app/api/auth/register/route.js",
+  "/api/chat/start/route": "app/api/chat/start/route.js",
+  "/api/chat/messages/[sessionId]/route": "app/api/chat/messages/[sessionId]/route.js",
+  "/api/chat/send/route": "app/api/chat/send/route.js",
+  "/api/admin/auth/me/route": "app/api/admin/auth/me/route.js",
+  "/api/admin/users/route": "app/api/admin/users/route.js",
+  "/api/admin/chat/sessions/route": "app/api/admin/chat/sessions/route.js",
   "/_not-found/page": "app/_not-found/page.js",
-  "/api/auth/me/route": "app/api/auth/me/route.js"
+  "/api/admin/chat/sessions/[sessionId]/messages/route": "app/api/admin/chat/sessions/[sessionId]/messages/route.js",
+  "/admin/login/page": "app/admin/login/page.js",
+  "/admin/dashboard/page": "app/admin/dashboard/page.js",
+  "/admin/chat/page": "app/admin/chat/page.js",
+  "/admin/users/page": "app/admin/users/page.js"
 }

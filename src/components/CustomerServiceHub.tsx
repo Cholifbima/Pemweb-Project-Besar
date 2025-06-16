@@ -19,16 +19,19 @@ export default function CustomerServiceHub({ onClose }: CustomerServiceHubProps)
   const [showLiveChat, setShowLiveChat] = useState(false)
 
   const handleChatClick = () => {
-    if (!user) {
-      alert('Silakan login terlebih dahulu untuk menggunakan layanan chat.')
-      return
-    }
     setIsOpen(true)
     setActiveService('selection')
   }
 
   const handleServiceSelect = (service: 'ai' | 'live') => {
     console.log('🔀 Service selected:', service)
+    
+    // Check if user is logged in
+    if (!user) {
+      alert('Silakan login terlebih dahulu untuk menggunakan layanan chat.')
+      return
+    }
+    
     setActiveService(service)
     setIsOpen(false) // Close selection modal first
     
@@ -56,10 +59,7 @@ export default function CustomerServiceHub({ onClose }: CustomerServiceHubProps)
     onClose?.()
   }
 
-  // Don't render if user is not logged in
-  if (!user) {
-    return null
-  }
+  // Always render button, but restrict functionality based on login status
 
   return (
     <>
@@ -113,15 +113,31 @@ export default function CustomerServiceHub({ onClose }: CustomerServiceHubProps)
 
             {!isMinimized && (
               <div className="p-6">
-                <p className="text-gray-300 text-sm mb-6 text-center">
-                  Pilih layanan customer service yang Anda butuhkan
-                </p>
+                {!user ? (
+                  <div className="text-center mb-6">
+                    <p className="text-yellow-400 text-sm mb-2">
+                      ⚠️ Silakan login terlebih dahulu
+                    </p>
+                    <p className="text-gray-300 text-xs">
+                      Untuk menggunakan layanan chat, Anda perlu login ke akun
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-gray-300 text-sm mb-6 text-center">
+                    Pilih layanan customer service yang Anda butuhkan
+                  </p>
+                )}
                 
                 <div className="space-y-4">
                   {/* AI Chat Option */}
                   <button
                     onClick={() => handleServiceSelect('ai')}
-                    className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-xl p-4 transition-all duration-200 transform hover:scale-105"
+                    className={`w-full rounded-xl p-4 transition-all duration-200 transform hover:scale-105 ${
+                      user 
+                        ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700' 
+                        : 'bg-gray-600 opacity-50 cursor-not-allowed'
+                    }`}
+                    disabled={!user}
                   >
                     <div className="flex items-center">
                       <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mr-4">
@@ -137,7 +153,12 @@ export default function CustomerServiceHub({ onClose }: CustomerServiceHubProps)
                   {/* Live Chat Option */}
                   <button
                     onClick={() => handleServiceSelect('live')}
-                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl p-4 transition-all duration-200 transform hover:scale-105"
+                    className={`w-full rounded-xl p-4 transition-all duration-200 transform hover:scale-105 ${
+                      user 
+                        ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700' 
+                        : 'bg-gray-600 opacity-50 cursor-not-allowed'
+                    }`}
+                    disabled={!user}
                   >
                     <div className="flex items-center">
                       <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mr-4">

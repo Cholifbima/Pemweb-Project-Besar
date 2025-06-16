@@ -43,6 +43,12 @@ export default function LoginPage() {
         throw new Error(data.error || 'Login gagal');
       }
 
+      // Store token in localStorage for chat functionality
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+        console.log('✅ Token stored in localStorage for chat functionality');
+      }
+
       // Show success toast
       showToast.success('Login berhasil! Selamat datang kembali 🎮');
 

@@ -58,7 +58,9 @@ export async function POST(request: NextRequest) {
     // Set token in HTTP-only cookie for security
     const response = NextResponse.json(
       { 
+        success: true,
         message: 'Login berhasil!',
+        token: result.token,
         user: result.user 
       },
       { status: 200 }

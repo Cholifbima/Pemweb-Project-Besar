@@ -12,14 +12,14 @@ export const azureConfig = {
   openai: {
     endpoint: getEnvVar('AZURE_OPENAI_ENDPOINT', "https://doaibu-openai.openai.azure.com/"),
     apiKey: getEnvVar('AZURE_OPENAI_API_KEY', "dummy-key-for-build"),
-    deploymentName: getEnvVar('AZURE_OPENAI_DEPLOYMENT_NAME', "gpt-4o"),
+    deploymentName: getEnvVar('AZURE_OPENAI_DEPLOYMENT_NAME', "gpt-4"),
     apiVersion: "2024-02-15-preview"
   },
 
-  // Azure Document Intelligence Configuration (corrected key name)
+  // Azure Document Intelligence Configuration
   documentIntelligence: {
-    endpoint: getEnvVar('AZURE_AI_FORM_RECOGNIZER_ENDPOINT', "https://doaibu-document.cognitiveservices.azure.com/"),
-    apiKey: getEnvVar('AZURE_AI_FORM_RECOGNIZER_KEY', "dummy-key-for-build")
+    endpoint: getEnvVar('AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT', "https://doaibu-document.cognitiveservices.azure.com/"),
+    apiKey: getEnvVar('AZURE_DOCUMENT_INTELLIGENCE_API_KEY', "dummy-key-for-build")
   },
 
   // Azure SignalR Configuration
@@ -44,7 +44,7 @@ export const isProduction = () => {
 export const isAzureConfigured = () => {
   const requiredKeys = [
     'AZURE_OPENAI_API_KEY',
-    'AZURE_AI_FORM_RECOGNIZER_KEY',
+    'AZURE_DOCUMENT_INTELLIGENCE_API_KEY',
     'AZURE_SIGNALR_CONNECTION_STRING',
     'AZURE_STORAGE_CONNECTION_STRING'
   ]
@@ -63,7 +63,7 @@ export const validateAzureConfig = () => {
     missingVars.push('AZURE_OPENAI_API_KEY')
   }
   if (!azureConfig.documentIntelligence.apiKey || azureConfig.documentIntelligence.apiKey.includes("dummy")) {
-    missingVars.push('AZURE_AI_FORM_RECOGNIZER_KEY')
+    missingVars.push('AZURE_DOCUMENT_INTELLIGENCE_API_KEY')
   }
   if (!azureConfig.signalr.connectionString || azureConfig.signalr.connectionString.includes("dummy")) {
     missingVars.push('AZURE_SIGNALR_CONNECTION_STRING')
