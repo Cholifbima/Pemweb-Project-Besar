@@ -1,5 +1,24 @@
 const { PrismaClient } = require('@prisma/client')
 const bcrypt = require('bcryptjs')
+const { execSync } = require('child_process')
+
+// Setup environment first
+try {
+  console.log('🔧 Setting up environment...')
+  
+  // Check if we're in Azure or need to setup locally
+  const isAzure = process.env.WEBSITE_SITE_NAME || process.env.APPSETTING_WEBSITE_SITE_NAME
+  
+  if (isAzure) {
+    console.log('📍 Running in Azure environment')
+    execSync('node scripts/azure-startup.js', { stdio: 'inherit' })
+  } else {
+    console.log('📍 Running locally, setting up Azure environment')
+    execSync('node scripts/setup-azure-env.js azure', { stdio: 'inherit' })
+  }
+} catch (setupError) {
+  console.warn('⚠️ Environment setup error:', setupError.message)
+}
 
 const prisma = new PrismaClient()
 
