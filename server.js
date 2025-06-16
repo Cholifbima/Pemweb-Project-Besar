@@ -8,51 +8,18 @@ console.log('🚀 Starting DoaIbu Store on Azure...')
 async function setupApplication() {
   console.log('🔧 Setting up application...')
   
-  // Run Azure deployment fix script
-  try {
-    console.log('🔧 Running Azure deployment fix...')
-    const { exec } = require('child_process')
-    await new Promise((resolve, reject) => {
-      exec('node scripts/azure-deployment-fix.js', (error, stdout, stderr) => {
-        if (stdout) console.log(stdout)
-        if (stderr) console.error(stderr)
-        if (error) {
-          console.error('❌ Azure fix script failed:', error)
-          // Don't fail startup for this
-          resolve()
-        } else {
-          console.log('✅ Azure deployment fix completed')
-          resolve()
-        }
-      })
-    })
-  } catch (error) {
-    console.error('⚠️ Azure fix script error (continuing anyway):', error)
+  // Check if we're in Azure environment
+  const isAzure = process.env.WEBSITE_SITE_NAME || process.env.AZURE_SQL_SERVER
+  console.log('🌍 Environment:', isAzure ? 'Azure' : 'Local')
+  
+  if (isAzure) {
+    console.log('🔧 Running Azure-specific setup...')
+    console.log('🔗 Using Azure SQL Database configuration')
+    console.log('📊 Database: doaibustore-db on doaibustore-sv.database.windows.net')
+  } else {
+    console.log('🏠 Local environment detected')
   }
   
-  // Switch to Azure SQL Server schema if needed
-  try {
-    console.log('🔄 Switching to Azure SQL Server schema...')
-    const { exec } = require('child_process')
-    await new Promise((resolve, reject) => {
-      exec('node scripts/switch-db.js azure', (error, stdout, stderr) => {
-        if (error) {
-          console.error('❌ Schema switch failed:', error)
-          // Don't fail startup for schema switch issues
-          resolve()
-        } else {
-          console.log('✅ Schema switched successfully')
-          resolve()
-        }
-      })
-    })
-  } catch (error) {
-    console.error('⚠️ Schema switch error (continuing anyway):', error)
-  }
-  
-  console.log('🔄 Switching database configuration to: azure')
-  console.log('✅ Switched to Azure SQL Server schema')
-  console.log('🔧 Environment configured for Azure SQL Database')
   console.log('📊 Starting Next.js server...')
 }
 

@@ -1,7 +1,9 @@
 {
   "/api/chat/admins/route": "app/api/chat/admins/route.js",
+  "/api/chat/recent/[adminId]/route": "app/api/chat/recent/[adminId]/route.js",
+  "/api/auth/me/route": "app/api/auth/me/route.js",
   "/page": "app/page.js",
-  "/api/chat/start/route": "app/api/chat/start/route.js",
   "/api/chat/messages/[sessionId]/route": "app/api/chat/messages/[sessionId]/route.js",
-  "/api/chat/recent/[adminId]/route": "app/api/chat/recent/[adminId]/route.js"
+  "/api/chat/start/route": "app/api/chat/start/route.js",
+  "/api/chat/send/route": "app/api/chat/send/route.js"
 }
