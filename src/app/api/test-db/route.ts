@@ -10,7 +10,13 @@ export async function GET() {
     console.log('✅ Database connection successful')
     
     // Test if tables exist and get counts
-    const results = {
+    const results: {
+      connection: string
+      timestamp: string
+      tables: Record<string, any>
+      sampleUser?: any
+      sampleUserError?: string
+    } = {
       connection: 'success',
       timestamp: new Date().toISOString(),
       tables: {}
@@ -21,7 +27,7 @@ export async function GET() {
       const userCount = await prisma.user.count()
       results.tables.users = { count: userCount, status: 'exists' }
       console.log(`✅ Users table: ${userCount} records`)
-    } catch (error) {
+    } catch (error: any) {
       results.tables.users = { error: error.message, status: 'error' }
       console.log('❌ Users table error:', error.message)
     }
@@ -30,7 +36,7 @@ export async function GET() {
       const adminCount = await prisma.admin.count()
       results.tables.admins = { count: adminCount, status: 'exists' }
       console.log(`✅ Admins table: ${adminCount} records`)
-    } catch (error) {
+    } catch (error: any) {
       results.tables.admins = { error: error.message, status: 'error' }
       console.log('❌ Admins table error:', error.message)
     }
@@ -39,7 +45,7 @@ export async function GET() {
       const gameCount = await prisma.game.count()
       results.tables.games = { count: gameCount, status: 'exists' }
       console.log(`✅ Games table: ${gameCount} records`)
-    } catch (error) {
+    } catch (error: any) {
       results.tables.games = { error: error.message, status: 'error' }
       console.log('❌ Games table error:', error.message)
     }
@@ -56,7 +62,7 @@ export async function GET() {
       })
       results.sampleUser = firstUser
       console.log('✅ Sample user query successful')
-    } catch (error) {
+    } catch (error: any) {
       results.sampleUserError = error.message
       console.log('❌ Sample user query error:', error.message)
     }
