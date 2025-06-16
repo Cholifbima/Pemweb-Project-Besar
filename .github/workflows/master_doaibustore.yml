@@ -24,31 +24,68 @@ jobs:
           node-version: '22.x'
           cache: 'npm'
 
-      - name: npm install, build, and test
+      - name: Setup build environment
         env:
-          DATABASE_URL: "sqlserver://build:temp@localhost:1433;database=temp;user=temp;password=temp;encrypt=true;"
-          JWT_SECRET: "build-time-secret"
-          NEXTAUTH_SECRET: "build-time-nextauth-secret"
+          # Core application environment variables
+          DATABASE_URL: "sqlserver://localhost:1433;database=temp;user=temp;password=temp;encrypt=true;"
+          JWT_SECRET: "fc171b44b0f64cd1122b7de3b42405f71cfda1f1e"
+          NEXTAUTH_SECRET: "e1a26e8ae36bab0baaff5cad72633c103e345b65"
           NEXTAUTH_URL: "https://doaibustore.site"
           NODE_ENV: "production"
+          
+          # Azure service dummy keys for build (will not be used at runtime)
+          AZURE_OPENAI_ENDPOINT: "https://dummy.openai.azure.com/"
+          AZURE_OPENAI_API_KEY: "dummy-build-key"
+          AZURE_OPENAI_DEPLOYMENT_NAME: "gpt-4"
+          AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT: "https://dummy.cognitiveservices.azure.com/"
+          AZURE_DOCUMENT_INTELLIGENCE_API_KEY: "dummy-build-key"
+          AZURE_SIGNALR_CONNECTION_STRING: "Endpoint=https://dummy.service.signalr.net;AccessKey=dummy-build-key;Version=1.0;"
+          AZURE_STORAGE_ACCOUNT_NAME: "dummy"
+          AZURE_STORAGE_ACCOUNT_KEY: "dummy-build-key"
+          AZURE_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=https;AccountName=dummy;AccountKey=dummy-build-key;EndpointSuffix=core.windows.net"
+          APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=dummy-build-key"
+          XDT_MicrosoftApplicationInsights_Mode: "default"
         run: |
           npm ci
-          npm run build
+          npm run build:azure
           
           # Verify build output
           ls -la .next || echo ".next folder not created"
           
-          # List build output
+          # Check if essential files exist
           echo "Build completed. Checking output:"
           ls -la
+          echo "Checking .next folder contents:"
+          ls -la .next/ || echo "No .next folder"
 
-      - name: Zip artifact for deployment
+      - name: Prepare deployment package
         run: |
-          # Remove node_modules to avoid size issues
+          # Remove node_modules to avoid size issues but preserve necessary files
           rm -rf node_modules
           
-          # Create zip with essential files only
-          zip -r release.zip . -x "*.git*" "node_modules/*" ".env*" "*.log" "coverage/*" ".nyc_output/*"
+          # Install only production dependencies
+          npm ci --only=production
+          
+          # Create deployment folder
+          mkdir -p deploy
+          
+          # Copy essential files for deployment
+          cp -r .next deploy/
+          cp -r public deploy/
+          cp -r src deploy/
+          cp -r prisma deploy/
+          cp package*.json deploy/
+          cp next.config.js deploy/
+          cp web.config deploy/
+          
+          # Copy node_modules (production only)
+          cp -r node_modules deploy/
+          
+          # Create startup scripts
+          echo "node server.js" > deploy/startup.sh
+          echo "npm start" > deploy/package-start.sh
+          
+          cd deploy && zip -r ../release.zip . -x "*.env*" "*.log"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -88,5 +125,5 @@ jobs:
         with:
           app-name: 'doaibustore'
           slot-name: 'Production'
-          package: release.zip
+          package: .
           

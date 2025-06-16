@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     if (!analysisResult.success) {
       console.error('❌ Document analysis error:', analysisResult.error)
       return NextResponse.json(
-        { error: analysisResult.message || 'Gagal menganalisis dokumen' },
+        { error: 'error' in analysisResult ? analysisResult.error : 'Gagal menganalisis dokumen' },
         { status: 500 }
       )
     }

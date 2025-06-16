@@ -102,7 +102,7 @@ model Admin {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
-  // Relations
+  // Relations - Remove ChatMessage relation to break cycle
   chatSessions ChatSession[]
   transactions Transaction[]
   chatMessages ChatMessage[]

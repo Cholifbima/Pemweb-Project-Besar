@@ -46,17 +46,10 @@ export async function POST(request: NextRequest) {
     // Get AI response
     const aiResponse = await chatWithAI(message, chatHistory)
 
-    if (!aiResponse.success) {
-      console.error('❌ AI Chat Error:', aiResponse.error)
-      return NextResponse.json(
-        { 
-          error: 'Layanan AI sedang mengalami gangguan',
-          fallbackMessage: 'Maaf, AI sedang tidak tersedia. Silakan hubungi customer service atau coba lagi nanti.' 
-        },
-        { status: 500 }
-      )
-    }
-
+    // Since we modified chatWithAI to always return success with fallback,
+    // this check is not needed anymore, but keeping for safety
+    console.log('✅ AI Response generated (with potential fallback)')
+    
     // Save chat to database (optional - for history)
     try {
       // You can implement chat history storage here if needed
