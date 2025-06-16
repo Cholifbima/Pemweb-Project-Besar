@@ -40,8 +40,6 @@ jobs:
           # Verify Prisma client generation
           if [ -d "node_modules/.prisma/client" ]; then
             echo "✅ Prisma client generated successfully"
-            echo "📁 Client structure:"
-            ls -la node_modules/.prisma/client/ | head -10
           else
             echo "❌ Prisma client generation failed"
             exit 1
@@ -54,16 +52,14 @@ jobs:
           # Verify build output
           if [ -d ".next" ]; then
             echo "✅ Next.js build successful"
-            echo "📁 Build output:"
-            ls -la .next/ | head -5
           else
             echo "❌ Next.js build failed"
             exit 1
           fi
 
-      - name: Prepare deployment package
+      - name: Create deployment package
         run: |
-          echo "📦 Preparing deployment package..."
+          echo "📦 Creating deployment package..."
           
           # Create deployment directory
           mkdir -p deployment
@@ -77,17 +73,14 @@ jobs:
           cp next.config.js deployment/
           cp server.js deployment/
           
-          # Copy essential node_modules with Prisma client
+          # Copy essential node_modules with Prisma client and Next.js
           echo "📋 Copying essential dependencies..."
           mkdir -p deployment/node_modules
           
           # Copy Prisma client (most important)
           if [ -d "node_modules/.prisma" ]; then
             cp -r node_modules/.prisma deployment/node_modules/
-            echo "✅ Prisma client copied successfully"
-          else
-            echo "❌ Prisma client not found for copying!"
-            exit 1
+            echo "✅ Prisma client copied"
           fi
           
           # Copy @prisma/client
@@ -96,7 +89,7 @@ jobs:
             echo "✅ @prisma/client copied"
           fi
           
-          # Copy other essential runtime dependencies
+          # Copy Next.js and essential runtime dependencies
           essential_deps=(
             "next"
             "react"
@@ -106,6 +99,7 @@ jobs:
             "uuid"
             "sharp"
             "multer"
+            "@types"
           )
           
           for dep in "${essential_deps[@]}"; do
@@ -114,6 +108,10 @@ jobs:
               echo "✅ Copied $dep"
             fi
           done
+          
+          # Copy all dependencies to ensure nothing is missing
+          echo "📋 Copying all node_modules to ensure complete deployment..."
+          cp -r node_modules/* deployment/node_modules/ 2>/dev/null || true
           
           # Create web.config for Azure
           cat > deployment/web.config << 'EOF'
@@ -152,35 +150,17 @@ jobs:
           
           if [ -d "deployment/node_modules/.prisma/client" ]; then
             echo "✅ Prisma client verified in deployment package"
-            echo "📋 Prisma client files:"
-            ls -la deployment/node_modules/.prisma/client/ | head -5
           else
             echo "❌ Prisma client missing in deployment package!"
             exit 1
           fi
           
-          # Create package.json for production
-          cat > deployment/package.json << 'EOF'
-          {
-            "name": "doaibu-store-azure",
-            "version": "1.0.0",
-            "private": true,
-            "scripts": {
-              "start": "node server.js"
-            },
-            "dependencies": {
-              "@prisma/client": "^6.9.0",
-              "next": "14.2.3",
-              "react": "^18",
-              "react-dom": "^18",
-              "bcryptjs": "^3.0.2",
-              "jsonwebtoken": "^9.0.2",
-              "uuid": "^11.1.0",
-              "sharp": "^0.34.2",
-              "multer": "^2.0.1"
-            }
-          }
-          EOF
+          if [ -d "deployment/node_modules/next" ]; then
+            echo "✅ Next.js found in deployment package"
+          else
+            echo "❌ Next.js missing in deployment package!"
+            exit 1
+          fi
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
