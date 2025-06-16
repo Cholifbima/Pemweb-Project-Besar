@@ -25,71 +25,97 @@ jobs:
       - name: Switch to Azure SQL Server schema
         run: node scripts/switch-db.js azure
 
-      - name: Build application
+      - name: Build application for Azure
         env:
           NODE_ENV: production
+          # Use a dummy connection string for build-time generation
           DATABASE_URL: "sqlserver://temp:temp@localhost:1433;database=temp;encrypt=true;"
         run: |
-          # Generate Prisma client with Azure schema
+          echo "🏗️ Building application for Azure deployment..."
+          
+          # Generate Prisma client with Azure SQL Server schema
+          echo "📦 Generating Prisma client..."
           npx prisma generate
           
-          # Verify generation worked
-          if [ -d "node_modules/.prisma" ]; then
+          # Verify Prisma client generation
+          if [ -d "node_modules/.prisma/client" ]; then
             echo "✅ Prisma client generated successfully"
-            ls -la node_modules/.prisma/
-            ls -la node_modules/.prisma/client/ || echo "Client subfolder missing"
+            echo "📁 Client structure:"
+            ls -la node_modules/.prisma/client/ | head -10
           else
             echo "❌ Prisma client generation failed"
             exit 1
           fi
           
           # Build Next.js application
+          echo "🔨 Building Next.js application..."
           npm run build
           
           # Verify build output
           if [ -d ".next" ]; then
             echo "✅ Next.js build successful"
+            echo "📁 Build output:"
+            ls -la .next/ | head -5
           else
             echo "❌ Next.js build failed"
             exit 1
           fi
-          
-      - name: Create deployment package
+
+      - name: Prepare deployment package
         run: |
-          # Create deployment directory
-          mkdir deployment
+          echo "📦 Preparing deployment package..."
           
-          # Copy essential files
+          # Create deployment directory
+          mkdir -p deployment
+          
+          # Copy built application files
           cp -r .next deployment/
           cp -r public deployment/
           cp -r prisma deployment/
           cp -r scripts deployment/
           cp package*.json deployment/
           cp next.config.js deployment/
+          cp server.js deployment/
           
-          # Copy Node.js dependencies including Prisma client
-          cp -r node_modules deployment/
+          # Copy essential node_modules with Prisma client
+          echo "📋 Copying essential dependencies..."
+          mkdir -p deployment/node_modules
           
-          # Verify Prisma client in deployment
-          if [ -d "deployment/node_modules/.prisma/client" ]; then
-            echo "✅ Prisma client copied to deployment"
-            ls -la deployment/node_modules/.prisma/client/ | head -5
+          # Copy Prisma client (most important)
+          if [ -d "node_modules/.prisma" ]; then
+            cp -r node_modules/.prisma deployment/node_modules/
+            echo "✅ Prisma client copied successfully"
           else
-            echo "❌ Prisma client missing in deployment!"
-            
-            # Try to manually copy if it exists in source
-            if [ -d "node_modules/.prisma" ]; then
-              echo "🔧 Manually copying Prisma client..."
-              mkdir -p deployment/node_modules/.prisma
-              cp -r node_modules/.prisma/* deployment/node_modules/.prisma/
-              echo "✅ Manual copy completed"
-            else
-              echo "❌ No Prisma client found in source either!"
-              exit 1
-            fi
+            echo "❌ Prisma client not found for copying!"
+            exit 1
           fi
           
-          # Create Azure configuration files
+          # Copy @prisma/client
+          if [ -d "node_modules/@prisma" ]; then
+            cp -r node_modules/@prisma deployment/node_modules/
+            echo "✅ @prisma/client copied"
+          fi
+          
+          # Copy other essential runtime dependencies
+          essential_deps=(
+            "next"
+            "react"
+            "react-dom"
+            "bcryptjs"
+            "jsonwebtoken"
+            "uuid"
+            "sharp"
+            "multer"
+          )
+          
+          for dep in "${essential_deps[@]}"; do
+            if [ -d "node_modules/$dep" ]; then
+              cp -r "node_modules/$dep" deployment/node_modules/
+              echo "✅ Copied $dep"
+            fi
+          done
+          
+          # Create web.config for Azure
           cat > deployment/web.config << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <configuration>
@@ -119,135 +145,42 @@ jobs:
           </configuration>
           EOF
           
-          # Create server.js for Azure with Prisma setup
-          cat > deployment/server.js << 'EOF'
-          const { createServer } = require('http')
-          const { parse } = require('url')
-          const next = require('next')
-          const { exec } = require('child_process')
-          const fs = require('fs')
-          const path = require('path')
+          # Verify deployment package
+          echo "🔍 Verifying deployment package..."
+          echo "📁 Deployment structure:"
+          ls -la deployment/
           
-          console.log('🚀 Starting DoaIbu Store on Azure...')
-          
-          // Setup function to run before starting Next.js
-          async function setupApplication() {
-            console.log('🔧 Setting up application...')
-            
-            // Check if we need to switch schema and generate Prisma client
-            try {
-              console.log('🔄 Switching to Azure SQL Server schema...')
-              await new Promise((resolve, reject) => {
-                exec('node scripts/switch-db.js azure', (error, stdout, stderr) => {
-                  if (error) {
-                    console.error('❌ Schema switch failed:', error)
-                    reject(error)
-                  } else {
-                    console.log('✅ Schema switched successfully')
-                    console.log(stdout)
-                    resolve()
-                  }
-                })
-              })
-              
-              console.log('🏗️ Generating Prisma client...')
-              await new Promise((resolve, reject) => {
-                exec('npx prisma generate', (error, stdout, stderr) => {
-                  if (error) {
-                    console.error('❌ Prisma generate failed:', error)
-                    reject(error)
-                  } else {
-                    console.log('✅ Prisma client generated successfully')
-                    console.log(stdout)
-                    resolve()
-                  }
-                })
-              })
-              
-              // Check if Prisma client exists
-              const prismaClientPath = path.join(__dirname, 'node_modules/.prisma/client')
-              if (fs.existsSync(prismaClientPath)) {
-                console.log('✅ Prisma client verified at:', prismaClientPath)
-              } else {
-                console.error('❌ Prisma client not found at:', prismaClientPath)
-              }
-              
-            } catch (error) {
-              console.error('⚠️ Setup failed, continuing anyway:', error.message)
-            }
-          }
-          
-          // Main server function
-          async function startServer() {
-            await setupApplication()
-            
-            const dev = process.env.NODE_ENV !== 'production'
-            const hostname = '0.0.0.0'
-            const port = process.env.PORT || 3000
-            
-            console.log('🎮 Starting Next.js application...')
-            const app = next({ dev, hostname, port })
-            const handle = app.getRequestHandler()
-            
-            await app.prepare()
-            console.log('✅ Next.js prepared successfully')
-            
-            createServer(async (req, res) => {
-              try {
-                const parsedUrl = parse(req.url, true)
-                await handle(req, res, parsedUrl)
-              } catch (err) {
-                console.error('❌ Error occurred handling', req.url, err)
-                res.statusCode = 500
-                res.end('internal server error')
-              }
-            }).listen(port, (err) => {
-              if (err) throw err
-              console.log(`🎉 DoaIbu Store ready on http://${hostname}:${port}`)
-            })
-          }
-          
-          // Start the server
-          startServer().catch(error => {
-            console.error('💥 Failed to start server:', error)
-            process.exit(1)
-          })
-          EOF
-          
-          # Create startup script for Azure (improved)
-          cat > deployment/startup.sh << 'EOF'
-          #!/bin/bash
-          echo "🚀 Starting DoaIbu Store Azure deployment..."
-          
-          # Switch to Azure schema
-          echo "🔄 Switching to Azure SQL Server schema..."
-          node scripts/switch-db.js azure
-          
-          # Generate Prisma client with Azure schema
-          echo "🏗️ Generating Prisma client..."
-          npx prisma generate
-          
-          # Verify Prisma client was generated
-          if [ -d "node_modules/.prisma/client" ]; then
-            echo "✅ Prisma client generated successfully"
+          if [ -d "deployment/node_modules/.prisma/client" ]; then
+            echo "✅ Prisma client verified in deployment package"
+            echo "📋 Prisma client files:"
+            ls -la deployment/node_modules/.prisma/client/ | head -5
           else
-            echo "❌ Prisma client generation failed!"
+            echo "❌ Prisma client missing in deployment package!"
             exit 1
           fi
           
-          # Seed admin accounts
-          echo "🌱 Seeding admin accounts..."
-          node scripts/test-admin-seed.js || echo "⚠️ Admin seeding skipped (already exists or failed)"
-          
-          # Start the application
-          echo "🎮 Starting DoaIbu Store application..."
-          node server.js
+          # Create package.json for production
+          cat > deployment/package.json << 'EOF'
+          {
+            "name": "doaibu-store-azure",
+            "version": "1.0.0",
+            "private": true,
+            "scripts": {
+              "start": "node server.js"
+            },
+            "dependencies": {
+              "@prisma/client": "^6.9.0",
+              "next": "14.2.3",
+              "react": "^18",
+              "react-dom": "^18",
+              "bcryptjs": "^3.0.2",
+              "jsonwebtoken": "^9.0.2",
+              "uuid": "^11.1.0",
+              "sharp": "^0.34.2",
+              "multer": "^2.0.1"
+            }
+          }
           EOF
-          
-          chmod +x deployment/startup.sh
-          
-          # Also create a simpler startup command for Azure App Service
-          echo "node server.js" > deployment/.next/startup_command.txt
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

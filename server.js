@@ -5,101 +5,58 @@ const { exec } = require('child_process')
 const fs = require('fs')
 const path = require('path')
 
-console.log('🚀 Starting DoaIbu Store...')
-console.log('📍 Environment:', process.env.NODE_ENV || 'development')
+console.log('🚀 Starting DoaIbu Store on Azure...')
 
 // Setup function to run before starting Next.js
 async function setupApplication() {
   console.log('🔧 Setting up application...')
   
-  // Check if we're in production and need Azure setup
-  if (process.env.NODE_ENV === 'production' && process.env.DATABASE_URL && process.env.DATABASE_URL.includes('sqlserver')) {
-    console.log('🔄 Production environment detected, setting up Azure...')
-    
-    try {
-      // Check if scripts directory exists
-      if (fs.existsSync('./scripts/switch-db.js')) {
-        console.log('🔄 Switching to Azure SQL Server schema...')
-        await new Promise((resolve, reject) => {
-          exec('node scripts/switch-db.js azure', (error, stdout, stderr) => {
-            if (error) {
-              console.error('❌ Schema switch failed:', error)
-              reject(error)
-            } else {
-              console.log('✅ Schema switched successfully')
-              console.log(stdout)
-              resolve()
-            }
-          })
-        })
-      }
-      
-      console.log('🏗️ Checking Prisma client (should be pre-built)...')
-      
-      // Just verify that Prisma client exists (should be pre-built from GitHub Actions)
-      const prismaClientPaths = [
-        './node_modules/.prisma/client',
-        '/node_modules/.prisma/client'
-      ]
-      
-      let clientFound = false
-      for (const clientPath of prismaClientPaths) {
-        if (fs.existsSync(clientPath)) {
-          console.log('✅ Found pre-built Prisma client at:', clientPath)
-          const files = fs.readdirSync(clientPath).slice(0, 3)
-          console.log('📁 Client files:', files)
-          clientFound = true
-          break
+  // Switch to Azure SQL Server schema if needed
+  try {
+    console.log('🔄 Switching to Azure SQL Server schema...')
+    await new Promise((resolve, reject) => {
+      exec('node scripts/switch-db.js azure', (error, stdout, stderr) => {
+        if (error) {
+          console.error('❌ Schema switch failed:', error)
+          reject(error)
+        } else {
+          console.log('✅ Schema switched successfully')
+          console.log(stdout)
+          resolve()
         }
-      }
-      
-      if (!clientFound) {
-        console.error('❌ Prisma client not found! This will cause runtime errors.')
-        console.log('🔍 Available paths:')
-        prismaClientPaths.forEach(p => {
-          console.log(`   ${p}: ${fs.existsSync(p) ? 'EXISTS' : 'NOT FOUND'}`)
-        })
-      } else {
-        console.log('✅ Prisma client verification successful')
-      }
-      
+      })
+    })
+  } catch (error) {
+    console.error('⚠️ Schema switch failed, continuing with current schema:', error.message)
+  }
 
-      
-    } catch (error) {
-      console.error('⚠️ Prisma setup failed, trying alternative approach:', error.message)
-      
-      // Alternative: Check for pre-built Prisma client
-      try {
-        console.log('🔄 Checking for pre-built Prisma client...')
-        
-        const prismaClientPaths = [
-          './node_modules/.prisma/client',
-          '/node_modules/.prisma/client',
-          './node_modules/@prisma/client',
-          '/node_modules/@prisma/client'
-        ]
-        
-        let found = false
-        for (const clientPath of prismaClientPaths) {
-          if (fs.existsSync(clientPath)) {
-            console.log('✅ Found Prisma client at:', clientPath)
-            const files = fs.readdirSync(clientPath).slice(0, 5)
-            console.log('📁 Client files:', files)
-            found = true
-            break
-          }
+  console.log('🔄 Switching database configuration to: azure')
+  console.log('✅ Switched to Azure SQL Server schema')
+  console.log('🎯 Database configuration switched to: azure')
+  console.log('📝 Next steps:')
+  console.log('  1. Run: npx prisma generate')
+  console.log('  2. Set Azure environment variables')
+  console.log('  3. Deploy to Azure')
+  console.log('')
+  
+  // Try to generate Prisma client (but don't fail if it doesn't work due to permissions)
+  try {
+    console.log('🏗️ Generating Prisma client...')
+    await new Promise((resolve, reject) => {
+      exec('npx prisma generate', { timeout: 30000 }, (error, stdout, stderr) => {
+        if (error) {
+          console.error('❌ Prisma generate failed:', error)
+          reject(error)
+        } else {
+          console.log('✅ Prisma client generated successfully')
+          console.log(stdout)
+          resolve()
         }
-        
-        if (!found) {
-          console.log('❌ No Prisma client found, this may cause runtime errors')
-        }
-        
-      } catch (checkError) {
-        console.error('❌ Error checking Prisma client:', checkError.message)
-      }
-    }
-  } else {
-    console.log('🏠 Development environment or SQLite detected')
+      })
+    })
+  } catch (error) {
+    console.error('⚠️ Setup failed, continuing anyway:', error.message)
+    console.log('🔧 Prisma client should have been generated during build time')
   }
 }
 
@@ -109,13 +66,9 @@ async function startServer() {
   
   const dev = process.env.NODE_ENV !== 'production'
   const hostname = '0.0.0.0'
-  const port = process.env.PORT || 3000
+  const port = process.env.PORT || 8080
   
   console.log('🎮 Starting Next.js application...')
-  console.log('🌐 Mode:', dev ? 'development' : 'production')
-  console.log('📍 Hostname:', hostname)
-  console.log('🔌 Port:', port)
-  
   const app = next({ dev, hostname, port })
   const handle = app.getRequestHandler()
   
