@@ -27,8 +27,8 @@ function getDatabaseUrl(): string {
   // Priority 2: Hardcoded Azure SQL connection for production (TEMPORARY FIX)
   if (process.env.NODE_ENV === 'production') {
     console.log('🔧 Using hardcoded Azure SQL connection for production');
-    // Use the connection string from your Azure Portal - replace with actual values
-    const azureConnectionString = 'sqlserver://doaibustore-sv.database.windows.net:1433;database=doaibustore-db;user=doaibustore-sv-admin;password=cholifbima123A;encrypt=true;trustServerCertificate=false;connectionTimeout=30;';
+    // Use the actual connection string with correct credentials
+    const azureConnectionString = 'sqlserver://doaibustore-sv.database.windows.net:1433;database=doaibustore-db;user=doaibustore-sv-admin;password=ganteng#123;encrypt=true;trustServerCertificate=false;connectionTimeout=30;';
     return azureConnectionString;
   }
 
