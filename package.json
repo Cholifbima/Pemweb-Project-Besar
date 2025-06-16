@@ -14,6 +14,7 @@
     "db:migrate": "npx prisma migrate dev",
     "db:studio": "npx prisma studio",
     "db:seed": "node prisma/seed.js",
+    "db:seed-admin": "node scripts/seed-azure-admin.js",
     "postinstall": "node scripts/azure-startup.js && npx prisma generate"
   },
   "dependencies": {

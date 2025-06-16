@@ -23,6 +23,16 @@ if (isAzure) {
     }
     
     console.log('✅ Azure startup completed successfully')
+    
+    // Seed admin accounts if in Azure environment
+    try {
+      console.log('🌱 Checking admin accounts...')
+      const { execSync } = require('child_process')
+      execSync('node scripts/seed-azure-admin.js', { stdio: 'inherit', cwd: __dirname + '/..' })
+    } catch (seedError) {
+      console.warn('⚠️ Admin seeding error (non-critical):', seedError.message)
+    }
+    
   } catch (error) {
     console.error('❌ Error during Azure startup:', error.message)
     // Don't exit with error, continue with current schema

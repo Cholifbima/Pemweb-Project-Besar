@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST='{"components\\\\Invoice.tsx -> html2canvas":{"id":1173,"files":["static/chunks/ad2866b8.989f74a0aef466bf.js"]}}';
+self.__REACT_LOADABLE_MANIFEST="{}"
