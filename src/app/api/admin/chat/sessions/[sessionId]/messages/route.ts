@@ -51,19 +51,34 @@ export async function GET(
       },
       orderBy: {
         createdAt: 'asc'
-      },
-      include: {
-        admin: {
-          select: {
-            username: true
-          }
-        }
       }
     })
 
+    // Get admin usernames for admin messages
+    const adminIds = messages
+      .filter(msg => msg.adminId)
+      .map(msg => msg.adminId!)
+      .filter((id, index, self) => self.indexOf(id) === index) // unique only
+
+    const admins = await prisma.admin.findMany({
+      where: {
+        id: { in: adminIds }
+      },
+      select: {
+        id: true,
+        username: true
+      }
+    })
+
+    // Map admin data to messages
+    const messagesWithAdmin = messages.map(message => ({
+      ...message,
+      admin: message.adminId ? admins.find(a => a.id === message.adminId) : null
+    }))
+
     return NextResponse.json({ 
       success: true,
-      messages: messages
+      messages: messagesWithAdmin
     })
 
   } catch (error) {

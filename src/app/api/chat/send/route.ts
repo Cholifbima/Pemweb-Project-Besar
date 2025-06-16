@@ -52,11 +52,6 @@ export async function POST(request: NextRequest) {
         content: content.trim(),
         isFromUser: true,
         messageType: messageType
-      },
-      include: {
-        admin: {
-          select: { username: true }
-        }
       }
     })
 
@@ -77,7 +72,7 @@ export async function POST(request: NextRequest) {
       fileName: message.fileName,
       fileSize: message.fileSize,
       createdAt: message.createdAt.toISOString(),
-      admin: message.admin
+      admin: null // No admin for user messages
     }
 
     return NextResponse.json({ 

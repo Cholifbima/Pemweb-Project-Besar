@@ -53,14 +53,7 @@ export async function GET(
           orderBy: {
             createdAt: 'desc'
           },
-          take: 1,
-          include: {
-            admin: {
-              select: {
-                username: true
-              }
-            }
-          }
+          take: 1
         }
       }
     })

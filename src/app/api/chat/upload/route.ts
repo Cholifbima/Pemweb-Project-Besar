@@ -163,13 +163,6 @@ export async function POST(request: NextRequest) {
         fileUrl: fileUrl,
         fileName: file.name, // Keep original filename for display
         fileSize: file.size
-      },
-      include: {
-        admin: {
-          select: {
-            username: true
-          }
-        }
       }
     })
 
@@ -186,7 +179,7 @@ export async function POST(request: NextRequest) {
       fileName: message.fileName,
       fileSize: message.fileSize,
       createdAt: message.createdAt.toISOString(),
-      admin: message.admin
+      admin: null // No admin for user messages
     }
 
     return NextResponse.json({

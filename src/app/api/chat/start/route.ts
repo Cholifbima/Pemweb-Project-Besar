@@ -47,19 +47,6 @@ export async function POST(request: NextRequest) {
         userId: user.id,
         assignedTo: adminId,
         status: 'active'
-      },
-      include: {
-        messages: {
-          orderBy: { createdAt: 'asc' },
-          include: {
-            admin: {
-              select: { username: true }
-            }
-          }
-        },
-        admin: {
-          select: { username: true, isOnline: true }
-        }
       }
     })
 
@@ -70,24 +57,11 @@ export async function POST(request: NextRequest) {
           userId: user.id,
           assignedTo: adminId,
           status: 'active'
-        },
-        include: {
-          messages: {
-            orderBy: { createdAt: 'asc' },
-            include: {
-              admin: {
-                select: { username: true }
-              }
-            }
-          },
-          admin: {
-            select: { username: true, isOnline: true }
-          }
         }
       })
 
       // Create initial welcome message
-      const welcomeMessage = await prisma.chatMessage.create({
+      await prisma.chatMessage.create({
         data: {
           sessionId: existingSession.id,
           content: admin.isOnline 
@@ -96,20 +70,36 @@ export async function POST(request: NextRequest) {
           isFromUser: false,
           adminId: adminId,
           messageType: 'text'
-        },
-        include: {
-          admin: {
-            select: { username: true }
-          }
         }
       })
-
-      // Add welcome message to session
-      existingSession.messages = [welcomeMessage]
     }
 
+    // Get all messages for this session
+    const messages = await prisma.chatMessage.findMany({
+      where: {
+        sessionId: existingSession.id
+      },
+      orderBy: { createdAt: 'asc' }
+    })
+
+    // Get admin usernames for admin messages
+    const adminIds = messages
+      .filter(msg => msg.adminId)
+      .map(msg => msg.adminId!)
+      .filter((id, index, self) => self.indexOf(id) === index) // unique only
+
+    const admins = await prisma.admin.findMany({
+      where: {
+        id: { in: adminIds }
+      },
+      select: {
+        id: true,
+        username: true
+      }
+    })
+
     // Format messages for response
-    const formattedMessages = existingSession.messages.map(message => ({
+    const formattedMessages = messages.map(message => ({
       id: message.id,
       content: message.content,
       isFromUser: message.isFromUser,
@@ -119,7 +109,7 @@ export async function POST(request: NextRequest) {
       fileName: message.fileName,
       fileSize: message.fileSize,
       createdAt: message.createdAt.toISOString(),
-      admin: message.admin
+      admin: message.adminId ? admins.find(a => a.id === message.adminId) : null
     }))
 
     const formattedSession = {
@@ -127,7 +117,10 @@ export async function POST(request: NextRequest) {
       adminId: existingSession.assignedTo,
       status: existingSession.status,
       messages: formattedMessages,
-      admin: existingSession.admin
+      admin: {
+        username: admin.username,
+        isOnline: admin.isOnline
+      }
     }
 
     return NextResponse.json({ 
