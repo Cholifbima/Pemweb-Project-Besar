@@ -100,12 +100,12 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Main Content with Gradient Background */}
-      <div className="bg-gradient-to-br from-slate-900 via-green-900 to-slate-900 py-8 px-4">
-        <div className="max-w-md mx-auto">
+      <div className="bg-gradient-to-br from-slate-900 via-green-900 to-slate-900 min-h-screen flex items-center justify-center py-8 px-4">
+        <div className="w-full max-w-md mx-auto">
           {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-green-400 mb-2">Buat Akun Baru</h1>
-            <p className="text-dark-300 mb-3">Bergabung dengan komunitas gamer!</p>
+          <div className="text-center mb-6">
+            <h1 className="text-2xl md:text-3xl font-bold text-green-400 mb-2">Buat Akun Baru</h1>
+            <p className="text-dark-300 mb-3 text-sm md:text-base">Bergabung dengan komunitas gamer!</p>
             <div className="bg-green-900/20 border border-green-500/20 rounded-lg p-4 text-left">
               <h3 className="text-green-400 font-semibold mb-2 flex items-center">
                 <span className="mr-2">🎁</span>
@@ -129,7 +129,7 @@ export default function RegisterPage() {
           </div>
 
           {/* Register Form */}
-          <div className="bg-dark-800/50 backdrop-blur-md rounded-xl border border-green-600/20 p-8 shadow-xl">
+          <div className="bg-dark-800/50 backdrop-blur-md rounded-xl border border-green-600/20 p-6 md:p-8 shadow-xl">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Email Field */}
               <div>

@@ -9,7 +9,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = env("DATABASE_PROVIDER") != null ? env("DATABASE_PROVIDER") : "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -50,13 +50,13 @@ model Order {
   updatedAt   DateTime @updatedAt
   
   // Relations
-  user        User     @relation(fields: [userId], references: [id])
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   @@map("orders")
 }
 
 model Transaction {
-  id          String   @id // Custom transaction ID like TRX123456789ABCDE
+  id          String   @id @default(cuid()) // Custom transaction ID like TRX123456789ABCDE
   userId      Int
   type        String   // "topup", "boost", "DEPOSIT", "ADMIN_ADJUSTMENT"
   gameId      String?
@@ -72,8 +72,8 @@ model Transaction {
   updatedAt   DateTime @updatedAt
   
   // Relations
-  user        User     @relation(fields: [userId], references: [id])
-  admin       Admin?   @relation(fields: [adminId], references: [id])
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  admin       Admin?   @relation(fields: [adminId], references: [id], onDelete: SetNull)
   
   @@map("transactions")
 }
@@ -104,8 +104,8 @@ model Admin {
   
   // Relations
   chatSessions ChatSession[]
-  chatMessages ChatMessage[]
   transactions Transaction[]
+  chatMessages ChatMessage[]
   
   @@map("admins")
 }
@@ -119,8 +119,8 @@ model ChatSession {
   updatedAt   DateTime @updatedAt
   
   // Relations
-  user        User     @relation(fields: [userId], references: [id])
-  admin       Admin?   @relation(fields: [assignedTo], references: [id])
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  admin       Admin?   @relation(fields: [assignedTo], references: [id], onDelete: SetNull)
   messages    ChatMessage[]
   
   @@map("chat_sessions")
@@ -131,7 +131,7 @@ model ChatMessage {
   sessionId   Int
   content     String
   isFromUser  Boolean     @default(true) // true for user, false for admin
-  adminId     Int?        // For admin messages
+  adminId     Int?        // Admin who sent this message (if from admin)
   isRead      Boolean     @default(false)
   messageType String      @default("text") // text, file, image
   fileUrl     String?     // Azure Blob Storage URL
@@ -140,8 +140,8 @@ model ChatMessage {
   createdAt   DateTime    @default(now())
   
   // Relations
-  session     ChatSession @relation(fields: [sessionId], references: [id])
-  admin       Admin?      @relation(fields: [adminId], references: [id])
+  session     ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  admin       Admin?      @relation(fields: [adminId], references: [id], onDelete: SetNull)
   
   @@map("chat_messages")
 }

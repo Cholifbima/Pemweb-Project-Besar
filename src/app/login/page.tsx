@@ -64,16 +64,16 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Main Content with Gradient Background */}
-      <div className="bg-gradient-to-br from-slate-900 via-green-900 to-slate-900 py-16 px-4">
-        <div className="max-w-md mx-auto">
+      <div className="bg-gradient-to-br from-slate-900 via-green-900 to-slate-900 min-h-screen flex items-center justify-center py-8 px-4">
+        <div className="w-full max-w-md mx-auto">
           {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-green-400 mb-2">Masuk ke Akun</h1>
-            <p className="text-dark-300">Selamat datang kembali, gamer!</p>
+          <div className="text-center mb-6">
+            <h1 className="text-2xl md:text-3xl font-bold text-green-400 mb-2">Masuk ke Akun</h1>
+            <p className="text-dark-300 text-sm md:text-base">Selamat datang kembali, gamer!</p>
           </div>
 
           {/* Login Form */}
-          <div className="bg-dark-800/50 backdrop-blur-md rounded-xl border border-green-600/20 p-8 shadow-xl">
+          <div className="bg-dark-800/50 backdrop-blur-md rounded-xl border border-green-600/20 p-6 md:p-8 shadow-xl">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Email/Username Field */}
               <div>

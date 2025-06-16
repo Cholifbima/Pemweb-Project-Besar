@@ -146,44 +146,52 @@ export default function Navigation() {
           </div>
 
           {/* Search Bar */}
-          <div className="flex-1 max-w-xl mx-4">
+          <div className="flex-1 max-w-lg mx-2 md:mx-4">
             <div className="relative" ref={searchInputRef}>
               <input
                 type="text"
                 placeholder="Cari game favorit kamu..."
-                className="w-full bg-dark-700/70 border border-dark-600 rounded-lg pl-4 pr-10 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 text-white placeholder-dark-400"
+                className="w-full bg-dark-700/70 border border-dark-600 rounded-lg pl-3 pr-10 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 text-white placeholder-dark-400 text-sm md:text-base"
                 value={searchQuery}
                 onChange={handleSearch}
                 onFocus={() => setShowSearchResults(searchQuery.length > 0)}
               />
               <button className="absolute right-0 top-0 h-full px-3 text-green-400">
-                <Search className="w-5 h-5" />
+                <Search className="w-4 h-4 md:w-5 md:h-5" />
               </button>
               
               {/* Search Results Dropdown */}
               {showSearchResults && filteredGames.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-dark-800 border border-dark-700 rounded-lg shadow-xl z-50 overflow-hidden">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-dark-800 border border-dark-700 rounded-lg shadow-xl z-50 overflow-hidden max-h-80 overflow-y-auto">
                   <div className="p-1">
                     {filteredGames.map(game => (
-                      <div key={game.id} className="py-2">
-                        <div className="text-green-400 font-medium px-3 py-1">{game.name}</div>
+                      <div key={game.id} className="py-1">
+                        <div className="text-green-400 font-medium px-3 py-1 text-sm">{game.name}</div>
                         <Link 
                           href={`/top-up/${game.id}`}
                           className="flex items-center px-3 py-2 hover:bg-dark-700 rounded-md transition-colors"
+                          onClick={() => {
+                            setShowSearchResults(false)
+                            setSearchQuery('')
+                          }}
                         >
-                          <div className="w-8 h-8 flex items-center justify-center bg-green-600/20 rounded-full mr-3 text-xl">
+                          <div className="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center bg-green-600/20 rounded-full mr-2 md:mr-3 text-sm md:text-xl">
                             {game.icon}
                           </div>
-                          <span>Top Up: {game.name}</span>
+                          <span className="text-sm md:text-base">Top Up: {game.name}</span>
                         </Link>
                         <Link 
                           href={`/boost-services/${game.id}`}
                           className="flex items-center px-3 py-2 hover:bg-dark-700 rounded-md transition-colors"
+                          onClick={() => {
+                            setShowSearchResults(false)
+                            setSearchQuery('')
+                          }}
                         >
-                          <div className="w-8 h-8 flex items-center justify-center bg-yellow-600/20 rounded-full mr-3 text-xl">
+                          <div className="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center bg-yellow-600/20 rounded-full mr-2 md:mr-3 text-sm md:text-xl">
                             {game.icon}
                           </div>
-                          <span>Joki: {game.name}</span>
+                          <span className="text-sm md:text-base">Joki: {game.name}</span>
                         </Link>
                       </div>
                     ))}
@@ -253,24 +261,21 @@ export default function Navigation() {
 
       {/* Mobile Menu - Slide from left with overlay */}
       <div 
-        className={`fixed inset-0 z-40 transition-opacity duration-300 ease-in-out p-0 m-0 ${
+        className={`fixed inset-0 z-40 transition-opacity duration-300 ease-in-out ${
           isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
-        style={{ margin: 0, padding: 0 }}
       >
         {/* Backdrop - completely black with opacity */}
         <div 
           className="absolute inset-0 bg-black/70 backdrop-blur-sm"
           onClick={() => setIsMobileMenuOpen(false)}
-          style={{ margin: 0, padding: 0 }}
         ></div>
         
         {/* Sidebar */}
         <div 
-          className={`fixed top-0 bottom-0 w-2/3 max-w-xs bg-gradient-to-b from-dark-900 to-dark-800 shadow-2xl transform transition-transform duration-300 ease-in-out h-full border-r border-green-600/20 ${
+          className={`fixed top-0 left-0 bottom-0 w-80 max-w-[85vw] bg-gradient-to-b from-dark-900 to-dark-800 shadow-2xl transform transition-transform duration-300 ease-in-out h-full border-r border-green-600/20 z-50 ${
             isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
-          style={{ left: 0, margin: 0, padding: 0 }}
         >
           {/* Logo and close button */}
           <div className="py-4 px-3 border-b border-dark-700 flex items-center justify-between bg-dark-900">
