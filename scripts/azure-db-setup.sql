@@ -115,12 +115,12 @@ CREATE TABLE dbo.chat_messages (
     FOREIGN KEY (adminId) REFERENCES dbo.admins(id) ON DELETE SET NULL
 );
 
--- Insert default admin user
+-- Insert default admin users
 INSERT INTO dbo.admins (username, password, role, isActive, isOnline, createdAt, updatedAt)
 VALUES 
-('admin', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'super_admin', 1, 0, GETDATE(), GETDATE()),
-('support1', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 1, 0, GETDATE(), GETDATE()),
-('support2', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 1, 0, GETDATE(), GETDATE());
+('Cholif', '$2b$10$kFKTdsUqU5MxXojfB5/nneBTe0LelksRENqqU8Bd1PgRZQ028L/0.', 'super_admin', 1, 0, GETDATE(), GETDATE()),
+('Havizhan', '$2b$10$ju.NvFMNCvwavMDFDmJawuLXC53bg9XnQxz99FrMiYpho51HaRfZG', 'admin', 1, 0, GETDATE(), GETDATE()),
+('Fathan', '$2b$10$sArOqZ.ra9V6ZLHlkQSiMOZ9ciO5Tih42zStrb2uCm5mL3cc7vCha', 'admin', 1, 0, GETDATE(), GETDATE());
 
 -- Insert sample games data
 INSERT INTO dbo.games (id, name, category, icon, isActive, createdAt, updatedAt)
