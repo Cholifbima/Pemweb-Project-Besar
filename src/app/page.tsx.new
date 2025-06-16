@@ -1,0 +1,362 @@
+'use client'
+
+import { Search, Menu, X, ChevronRight, ChevronLeft } from 'lucide-react'
+import Link from 'next/link'
+import Image from 'next/image'
+import { useState, useEffect, useRef } from 'react'
+import { getPopularGames, getTopUpGames, getBoostGames } from '@/data/games'
+
+export default function Home() {
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const popularGames = getTopUpGames()
+  const jokiGames = getBoostGames()
+  const sliderRef = useRef<HTMLDivElement>(null)
+
+  // Banner data
+  const banners = [
+    {
+      id: 1,
+      image: '/banners/banner1.jpg',
+      alt: 'Promo Top Up Mobile Legends'
+    },
+    {
+      id: 2,
+      image: '/banners/banner2.jpg',
+      alt: 'Promo Free Fire'
+    },
+    {
+      id: 3,
+      image: '/banners/banner3.jpg',
+      alt: 'Promo PUBG Mobile'
+    }
+  ]
+
+  // Auto-slide for banner carousel setiap 4 detik
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % banners.length)
+    }, 4000)
+    return () => clearInterval(interval)
+  }, [banners.length])
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+    }).format(amount)
+  }
+
+  // Game list
+  const gameList = [
+    { id: 'mobile-legends', name: 'Mobile Legends', icon: '📱', publisher: 'Moonton' },
+    { id: 'dota-2', name: 'Dota 2', icon: '🎮', publisher: 'Valve' },
+    { id: 'pubg-mobile', name: 'PUBG Mobile', icon: '🔫', publisher: 'Tencent Games' },
+    { id: 'free-fire', name: 'Free Fire', icon: '🔥', publisher: 'Garena' },
+    { id: 'genshin-impact', name: 'Genshin Impact', icon: '⚔️', publisher: 'miHoYo' },
+    { id: 'valorant', name: 'Valorant', icon: '🎯', publisher: 'Riot Games' },
+    { id: 'clash-royale', name: 'Clash Royale', icon: '👑', publisher: 'Supercell' },
+    { id: 'asphalt-9', name: 'Asphalt 9', icon: '🏎️', publisher: 'Gameloft' }
+  ]
+
+  return (
+    <main className="min-h-screen bg-white">
+      {/* 1. Dashboard Header */}
+      <header className="bg-white shadow-md sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <div className="flex-shrink-0 flex items-center">
+              <Link href="/" className="flex items-center">
+                <Image 
+                  src="/logo.png" 
+                  alt="DoaIbu Store Logo" 
+                  width={40} 
+                  height={40} 
+                  className="mr-2"
+                />
+                <span className="text-xl font-bold text-gray-800">DoaIbu Store</span>
+              </Link>
+            </div>
+
+            {/* Search Bar */}
+            <div className="flex-1 max-w-xl mx-4">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Cari game favorit kamu..."
+                  className="w-full border border-gray-300 rounded-lg pl-4 pr-10 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button className="absolute right-0 top-0 h-full px-3 text-gray-500">
+                  <Search className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-4">
+              <Link href="/top-up" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md font-medium">
+                Top Up
+              </Link>
+              <Link href="/transactions" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md font-medium">
+                Cek Transaksi
+              </Link>
+              <Link href="/joki" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md font-medium">
+                Joki Game
+              </Link>
+              <Link href="/contact" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md font-medium">
+                Contact
+              </Link>
+              <Link href="/login" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md font-medium">
+                Masuk
+              </Link>
+              <Link href="/register" className="bg-blue-600 text-white px-4 py-2 rounded-md font-medium hover:bg-blue-700">
+                Daftar
+              </Link>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="md:hidden flex items-center">
+              <button 
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="text-gray-700 p-2"
+              >
+                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden fixed inset-0 z-40 bg-white">
+            <div className="pt-20 px-4 pb-6 space-y-4">
+              <Link 
+                href="/top-up" 
+                className="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md font-medium"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Top Up
+              </Link>
+              <Link 
+                href="/transactions" 
+                className="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md font-medium"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Cek Transaksi
+              </Link>
+              <Link 
+                href="/joki" 
+                className="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md font-medium"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Joki Game
+              </Link>
+              <Link 
+                href="/contact" 
+                className="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md font-medium"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Contact
+              </Link>
+              <div className="border-t border-gray-200 pt-4 mt-4">
+                <Link 
+                  href="/login" 
+                  className="block text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md font-medium"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Masuk
+                </Link>
+                <Link 
+                  href="/register" 
+                  className="block bg-blue-600 text-white px-3 py-2 rounded-md font-medium mt-2 text-center"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Daftar
+                </Link>
+              </div>
+              <button 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="absolute top-4 right-4 text-gray-700"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+        )}
+      </header>
+
+      {/* 3. Banner Carousel */}
+      <section className="py-6 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="relative overflow-hidden rounded-xl">
+            <div 
+              ref={sliderRef}
+              className="flex transition-transform duration-500 ease-in-out"
+              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+            >
+              {banners.map((banner, index) => (
+                <div key={banner.id} className="w-full flex-shrink-0">
+                  <div className="bg-gray-200 rounded-xl aspect-[16/6] flex items-center justify-center relative">
+                    <Image 
+                      src={banner.image} 
+                      alt={banner.alt}
+                      fill
+                      className="object-cover rounded-xl"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {/* Navigation Arrows */}
+            <button
+              onClick={() => setCurrentSlide((prev) => (prev - 1 + banners.length) % banners.length)}
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-md transition-all duration-300"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => setCurrentSlide((prev) => (prev + 1) % banners.length)}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-md transition-all duration-300"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+            
+            {/* Indicators */}
+            <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2">
+              {banners.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentSlide(index)}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    index === currentSlide ? 'bg-blue-600 w-6' : 'bg-gray-300 hover:bg-gray-400'
+                  }`}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Produk Populer */}
+      <section className="py-8 px-4 sm:px-6 lg:px-8 bg-gray-50">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-xl md:text-2xl font-bold text-center text-red-600 mb-8">
+            🚨 TOTAL LEBIH DARI 200 GAME 🔥 🚨 ANTI LIBUR + OPEN 25 JAM 🔥<br/>
+            💫 Silahkan Temukan Game Kamu Di PENCARIAN 🔍
+          </h2>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {gameList.map((game) => (
+              <Link key={game.id} href={`/top-up/${game.id}`}>
+                <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 group">
+                  <div className="aspect-square bg-gray-100 flex items-center justify-center relative">
+                    <span className="text-5xl">{game.icon}</span>
+                    <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-white p-3">
+                      <h3 className="text-lg font-semibold">{game.name}</h3>
+                      <p className="text-sm text-gray-300">by {game.publisher}</p>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 5. Joki Game */}
+      <section className="py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-xl md:text-2xl font-bold mb-6 text-gray-800">
+            Jasa Joki Game
+          </h2>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {jokiGames.slice(0, 7).map((game) => (
+              <Link key={game.id} href={`/joki/${game.id}`}>
+                <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 group">
+                  <div className="aspect-square bg-gray-100 flex items-center justify-center relative">
+                    <span className="text-5xl">{game.icon}</span>
+                    <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-white p-3">
+                      <h3 className="text-lg font-semibold">{game.name}</h3>
+                      <p className="text-sm text-gray-300">Mulai dari {formatCurrency(game.boostServices?.[0]?.price || 0)}</p>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+          
+          {/* Banner di bawah joki */}
+          <div className="mt-10 bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg p-6 text-white text-center">
+            <div className="flex items-center justify-center">
+              <Image 
+                src="/logo.png" 
+                alt="DoaIbu Store Logo" 
+                width={60} 
+                height={60} 
+                className="mr-4"
+              />
+              <h3 className="text-2xl font-bold">DoaIbu Store</h3>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 6. Deskripsi dan Informasi */}
+      <section className="py-10 px-4 sm:px-6 lg:px-8 bg-gray-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-10">
+            <h2 className="text-xl font-bold mb-4 text-gray-800">Tentang DoaIbu Store</h2>
+            <p className="text-gray-600">
+              DoaIbu Store adalah Sahabat Para Gamers Dan Platform Top Up Game Termurah di Indonesia. 
+              Penuhi Kebutuhan Gaming Mu Bersama DoaIbu Store. Store Specialist Game Mobile Legends No.1 Murah, 
+              Aman, Terpercaya Dan Legal 100% (Open 24 Jam). DoaIbu Store Sahabat Para Gamers Kami berdedikasi 
+              untuk menyediakan layanan terbaik dan terus menerus inovatif untuk memenuhi kebutuhan gamers. 
+              Jangan lewatkan kesempatan untuk mengikuti kami di sosial media dan tetap update dengan informasi 
+              terbaru, tips, trik, dan promo-promo menarik lainnya.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+              <h3 className="font-bold text-gray-800 mb-4">Services</h3>
+              <ul className="space-y-2">
+                <li><Link href="/top-up" className="text-gray-600 hover:text-blue-600">Top Up Games</Link></li>
+                <li><Link href="/boost-services" className="text-gray-600 hover:text-blue-600">Boost Services</Link></li>
+                <li><Link href="/joki" className="text-gray-600 hover:text-blue-600">Joki Account</Link></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="font-bold text-gray-800 mb-4">Support</h3>
+              <ul className="space-y-2">
+                <li><Link href="/contact" className="text-gray-600 hover:text-blue-600">Contact Us</Link></li>
+                <li><Link href="/dashboard" className="text-gray-600 hover:text-blue-600">Dashboard</Link></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="font-bold text-gray-800 mb-4">Account</h3>
+              <ul className="space-y-2">
+                <li><Link href="/login" className="text-gray-600 hover:text-blue-600">Login</Link></li>
+                <li><Link href="/register" className="text-gray-600 hover:text-blue-600">Register</Link></li>
+                <li><Link href="/dashboard" className="text-gray-600 hover:text-blue-600">Dashboard</Link></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. Footer */}
+      <footer className="bg-white border-t border-gray-200 py-6 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto text-center">
+          <p className="text-gray-600">&copy; 2024 DoaIbu Store. All rights reserved.</p>
+        </div>
+      </footer>
+    </main>
+  )
+} 
