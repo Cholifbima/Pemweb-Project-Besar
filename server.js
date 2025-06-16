@@ -34,30 +34,69 @@ async function setupApplication() {
         })
       }
       
-      console.log('🏗️ Generating Prisma client...')
-      await new Promise((resolve, reject) => {
-        exec('npx prisma generate', (error, stdout, stderr) => {
-          if (error) {
-            console.error('❌ Prisma generate failed:', error)
-            reject(error)
-          } else {
-            console.log('✅ Prisma client generated successfully')
-            console.log(stdout)
-            resolve()
-          }
-        })
-      })
+      console.log('🏗️ Checking Prisma client (should be pre-built)...')
       
-      // Check if Prisma client exists
-      const prismaClientPath = path.join(__dirname, 'node_modules/.prisma/client')
-      if (fs.existsSync(prismaClientPath)) {
-        console.log('✅ Prisma client verified at:', prismaClientPath)
-      } else {
-        console.error('❌ Prisma client not found at:', prismaClientPath)
+      // Just verify that Prisma client exists (should be pre-built from GitHub Actions)
+      const prismaClientPaths = [
+        './node_modules/.prisma/client',
+        '/node_modules/.prisma/client'
+      ]
+      
+      let clientFound = false
+      for (const clientPath of prismaClientPaths) {
+        if (fs.existsSync(clientPath)) {
+          console.log('✅ Found pre-built Prisma client at:', clientPath)
+          const files = fs.readdirSync(clientPath).slice(0, 3)
+          console.log('📁 Client files:', files)
+          clientFound = true
+          break
+        }
       }
       
+      if (!clientFound) {
+        console.error('❌ Prisma client not found! This will cause runtime errors.')
+        console.log('🔍 Available paths:')
+        prismaClientPaths.forEach(p => {
+          console.log(`   ${p}: ${fs.existsSync(p) ? 'EXISTS' : 'NOT FOUND'}`)
+        })
+      } else {
+        console.log('✅ Prisma client verification successful')
+      }
+      
+
+      
     } catch (error) {
-      console.error('⚠️ Azure setup failed, continuing anyway:', error.message)
+      console.error('⚠️ Prisma setup failed, trying alternative approach:', error.message)
+      
+      // Alternative: Check for pre-built Prisma client
+      try {
+        console.log('🔄 Checking for pre-built Prisma client...')
+        
+        const prismaClientPaths = [
+          './node_modules/.prisma/client',
+          '/node_modules/.prisma/client',
+          './node_modules/@prisma/client',
+          '/node_modules/@prisma/client'
+        ]
+        
+        let found = false
+        for (const clientPath of prismaClientPaths) {
+          if (fs.existsSync(clientPath)) {
+            console.log('✅ Found Prisma client at:', clientPath)
+            const files = fs.readdirSync(clientPath).slice(0, 5)
+            console.log('📁 Client files:', files)
+            found = true
+            break
+          }
+        }
+        
+        if (!found) {
+          console.log('❌ No Prisma client found, this may cause runtime errors')
+        }
+        
+      } catch (checkError) {
+        console.error('❌ Error checking Prisma client:', checkError.message)
+      }
     }
   } else {
     console.log('🏠 Development environment or SQLite detected')

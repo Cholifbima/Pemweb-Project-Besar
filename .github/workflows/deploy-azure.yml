@@ -30,11 +30,29 @@ jobs:
           NODE_ENV: production
           DATABASE_URL: "sqlserver://temp:temp@localhost:1433;database=temp;encrypt=true;"
         run: |
+          # Generate Prisma client with Azure schema
           npx prisma generate
+          
+          # Verify generation worked
+          if [ -d "node_modules/.prisma" ]; then
+            echo "✅ Prisma client generated successfully"
+            ls -la node_modules/.prisma/
+            ls -la node_modules/.prisma/client/ || echo "Client subfolder missing"
+          else
+            echo "❌ Prisma client generation failed"
+            exit 1
+          fi
+          
+          # Build Next.js application
           npm run build
           
-          # Verify .prisma/client was generated
-          ls -la node_modules/.prisma/client/ || echo "Prisma client not found!"
+          # Verify build output
+          if [ -d ".next" ]; then
+            echo "✅ Next.js build successful"
+          else
+            echo "❌ Next.js build failed"
+            exit 1
+          fi
           
       - name: Create deployment package
         run: |
@@ -52,9 +70,24 @@ jobs:
           # Copy Node.js dependencies including Prisma client
           cp -r node_modules deployment/
           
-          # Ensure .prisma directory exists
-          mkdir -p deployment/node_modules/.prisma
-          cp -r node_modules/.prisma/* deployment/node_modules/.prisma/ 2>/dev/null || echo "No .prisma directory to copy"
+          # Verify Prisma client in deployment
+          if [ -d "deployment/node_modules/.prisma/client" ]; then
+            echo "✅ Prisma client copied to deployment"
+            ls -la deployment/node_modules/.prisma/client/ | head -5
+          else
+            echo "❌ Prisma client missing in deployment!"
+            
+            # Try to manually copy if it exists in source
+            if [ -d "node_modules/.prisma" ]; then
+              echo "🔧 Manually copying Prisma client..."
+              mkdir -p deployment/node_modules/.prisma
+              cp -r node_modules/.prisma/* deployment/node_modules/.prisma/
+              echo "✅ Manual copy completed"
+            else
+              echo "❌ No Prisma client found in source either!"
+              exit 1
+            fi
+          fi
           
           # Create Azure configuration files
           cat > deployment/web.config << 'EOF'
