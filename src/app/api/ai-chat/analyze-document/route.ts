@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getUserFromToken } from '@/lib/auth'
+import { getUserFromTokenLegacy } from '@/lib/auth'
 import { analyzeDocument, uploadChatFile } from '@/lib/azure-ai'
+
+export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,7 +20,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user from token
-    const userResult = await getUserFromToken(token)
+    const userResult = await getUserFromTokenLegacy(token)
     if (!userResult.success || !userResult.user) {
       console.log('❌ Invalid token or user not found')
       return NextResponse.json(

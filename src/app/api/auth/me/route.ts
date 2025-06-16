@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     // Dynamic import to avoid build-time issues
-    const { getUserFromToken } = await import('@/lib/auth');
+    const { getUserFromTokenLegacy } = await import('@/lib/auth');
     const { prisma } = await import('@/lib/db');
 
     // Get token from cookie
@@ -17,7 +19,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user from token
-    const result = await getUserFromToken(token);
+    const result = await getUserFromTokenLegacy(token);
 
     if (!result.success || !result.user) {
       return NextResponse.json(

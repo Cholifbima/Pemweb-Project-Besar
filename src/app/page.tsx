@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useState, useEffect, useRef } from 'react'
 import { getPopularGames, getTopUpGames, getBoostGames } from '@/data/games'
+import LiveChatCustomer from '@/components/LiveChatCustomer'
 // Import the banner images from assets
 import bannerWelcome from '@/assets/banner_welcome.png'
 import banner from '@/assets/banner.png'
@@ -142,13 +143,13 @@ export default function Home() {
               {/* Navigation Arrows */}
               <button
                 onClick={() => setCurrentSlide((prev) => (prev - 1 + banners.length) % banners.length)}
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-dark-800/50 hover:bg-dark-800/80 text-white p-2 rounded-full shadow-md transition-all duration-300"
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-gray-800/50 hover:bg-gray-800/80 text-white p-2 rounded-full shadow-md transition-all duration-300"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <button
                 onClick={() => setCurrentSlide((prev) => (prev + 1) % banners.length)}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-dark-800/50 hover:bg-dark-800/80 text-white p-2 rounded-full shadow-md transition-all duration-300"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-gray-800/50 hover:bg-gray-800/80 text-white p-2 rounded-full shadow-md transition-all duration-300"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -160,7 +161,7 @@ export default function Home() {
                     key={index}
                     onClick={() => setCurrentSlide(index)}
                     className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                      index === currentSlide ? 'bg-green-500 w-6' : 'bg-dark-400 hover:bg-dark-300'
+                      index === currentSlide ? 'bg-green-500 w-6' : 'bg-gray-400 hover:bg-gray-300'
                     }`}
                     aria-label={`Go to slide ${index + 1}`}
                   />
@@ -183,8 +184,8 @@ export default function Home() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                 {gameList.map((game) => (
                   <Link key={game.id} href={`/top-up/${game.id}`}>
-                    <div className="bg-dark-800/50 border border-dark-700 rounded-lg overflow-hidden shadow-lg hover:shadow-green-500/20 hover:border-green-500/50 transition-all duration-300 group">
-                      <div className="aspect-square bg-dark-700/50 flex items-center justify-center relative overflow-hidden">
+                    <div className="bg-gray-800/50 border border-gray-700 rounded-lg overflow-hidden shadow-lg hover:shadow-green-500/20 hover:border-green-500/50 transition-all duration-300 group">
+                      <div className="aspect-square bg-gray-700/50 flex items-center justify-center relative overflow-hidden">
                         {/* Game logo image instead of emoji */}
                         <div className="relative w-full h-full group-hover:scale-105 transition-transform duration-300">
                           <Image 
@@ -199,7 +200,7 @@ export default function Home() {
                           <div className="transform translate-y-10 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 delay-100 text-center">
                             <h3 className="text-lg font-semibold">{game.name}</h3>
                             <p className="text-sm text-white/90 mb-3">by {game.publisher}</p>
-                            <span className="inline-block bg-dark-900 text-green-400 px-4 py-1.5 rounded-full text-sm font-bold">
+                            <span className="inline-block bg-gray-900 text-green-400 px-4 py-1.5 rounded-full text-sm font-bold">
                               Top Up Now
                             </span>
                           </div>
@@ -222,8 +223,8 @@ export default function Home() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                 {jokiGames.slice(0, 7).map((game) => (
                   <Link key={game.id} href={`/boost-services/${game.id}`}>
-                    <div className="bg-dark-800/50 border border-dark-700 rounded-lg overflow-hidden shadow-lg hover:shadow-yellow-400/20 hover:border-yellow-400/50 transition-all duration-300 group">
-                      <div className="aspect-square bg-dark-700/50 flex items-center justify-center relative overflow-hidden">
+                    <div className="bg-gray-800/50 border border-gray-700 rounded-lg overflow-hidden shadow-lg hover:shadow-yellow-400/20 hover:border-yellow-400/50 transition-all duration-300 group">
+                      <div className="aspect-square bg-gray-700/50 flex items-center justify-center relative overflow-hidden">
                         {/* Game logo image instead of emoji */}
                         <div className="relative w-full h-full group-hover:scale-105 transition-transform duration-300">
                           <Image 
@@ -238,7 +239,7 @@ export default function Home() {
                           <div className="transform translate-y-10 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 delay-100 text-center">
                             <h3 className="text-lg font-semibold">{game.name}</h3>
                             <p className="text-sm text-white/90 mb-3">Mulai dari {formatCurrency(game.boostServices?.[0]?.price || 0)}</p>
-                            <span className="inline-block bg-dark-900 text-yellow-400 px-4 py-1.5 rounded-full text-sm font-bold">
+                            <span className="inline-block bg-gray-900 text-yellow-400 px-4 py-1.5 rounded-full text-sm font-bold">
                               Joki Now
                             </span>
                           </div>
@@ -268,11 +269,11 @@ export default function Home() {
         </div>
 
         {/* 6. Deskripsi dan Informasi */}
-        <section className="py-10 px-4 sm:px-6 lg:px-8 bg-dark-900">
+        <section className="py-10 px-4 sm:px-6 lg:px-8 bg-gray-900">
           <div className="max-w-7xl mx-auto">
             <div className="mb-10">
               <h2 className="text-xl font-bold mb-4 text-green-400">Tentang DoaIbu Store</h2>
-              <p className="text-dark-300">
+              <p className="text-gray-300">
                 DoaIbu Store adalah Sahabat Para Gamers Dan Platform Top Up Game Termurah di Indonesia. 
                 Penuhi Kebutuhan Gaming Mu Bersama DoaIbu Store. Store Specialist Game Mobile Legends No.1 Murah, 
                 Aman, Terpercaya Dan Legal 100% (Open 24 Jam). DoaIbu Store Sahabat Para Gamers Kami berdedikasi 
@@ -286,26 +287,26 @@ export default function Home() {
               <div>
                 <h3 className="font-bold text-green-400 mb-4">Services</h3>
                 <ul className="space-y-2">
-                  <li><Link href="/top-up" className="block bg-dark-800 text-dark-300 hover:text-green-400 px-3 py-2 rounded-md transition-colors">Top Up Games</Link></li>
-                  <li><Link href="/boost-services" className="block bg-dark-800 text-dark-300 hover:text-green-400 px-3 py-2 rounded-md transition-colors">Boost Services</Link></li>
-                  <li><Link href="/boost-services" className="block bg-dark-800 text-dark-300 hover:text-green-400 px-3 py-2 rounded-md transition-colors">Joki Account</Link></li>
+                  <li><Link href="/top-up" className="block bg-gray-800 text-gray-300 hover:text-green-400 px-3 py-2 rounded-md transition-colors">Top Up Games</Link></li>
+                  <li><Link href="/boost-services" className="block bg-gray-800 text-gray-300 hover:text-green-400 px-3 py-2 rounded-md transition-colors">Boost Services</Link></li>
+                  <li><Link href="/boost-services" className="block bg-gray-800 text-gray-300 hover:text-green-400 px-3 py-2 rounded-md transition-colors">Joki Account</Link></li>
                 </ul>
               </div>
               
               <div>
                 <h3 className="font-bold text-green-400 mb-4">Support</h3>
                 <ul className="space-y-2">
-                  <li><Link href="/contact" className="block bg-dark-800 text-dark-300 hover:text-green-400 px-3 py-2 rounded-md transition-colors">Contact Us</Link></li>
-                  <li><Link href="/dashboard" className="block bg-dark-800 text-dark-300 hover:text-green-400 px-3 py-2 rounded-md transition-colors">Dashboard</Link></li>
+                  <li><Link href="/contact" className="block bg-gray-800 text-gray-300 hover:text-green-400 px-3 py-2 rounded-md transition-colors">Contact Us</Link></li>
+                  <li><Link href="/dashboard" className="block bg-gray-800 text-gray-300 hover:text-green-400 px-3 py-2 rounded-md transition-colors">Dashboard</Link></li>
                 </ul>
               </div>
               
               <div>
                 <h3 className="font-bold text-green-400 mb-4">Account</h3>
                 <ul className="space-y-2">
-                  <li><Link href="/login" className="block bg-dark-800 text-dark-300 hover:text-green-400 px-3 py-2 rounded-md transition-colors">Login</Link></li>
-                  <li><Link href="/register" className="block bg-dark-800 text-dark-300 hover:text-green-400 px-3 py-2 rounded-md transition-colors">Register</Link></li>
-                  <li><Link href="/dashboard" className="block bg-dark-800 text-dark-300 hover:text-green-400 px-3 py-2 rounded-md transition-colors">Dashboard</Link></li>
+                  <li><Link href="/login" className="block bg-gray-800 text-gray-300 hover:text-green-400 px-3 py-2 rounded-md transition-colors">Login</Link></li>
+                  <li><Link href="/register" className="block bg-gray-800 text-gray-300 hover:text-green-400 px-3 py-2 rounded-md transition-colors">Register</Link></li>
+                  <li><Link href="/dashboard" className="block bg-gray-800 text-gray-300 hover:text-green-400 px-3 py-2 rounded-md transition-colors">Dashboard</Link></li>
                 </ul>
               </div>
             </div>
@@ -314,11 +315,14 @@ export default function Home() {
       </div>
 
       {/* 7. Footer */}
-      <footer className="bg-dark-900 border-t border-dark-700 py-6 px-4 sm:px-6 lg:px-8 text-white">
+      <footer className="bg-gray-900 border-t border-gray-700 py-6 px-4 sm:px-6 lg:px-8 text-white">
         <div className="max-w-7xl mx-auto text-center">
-          <p className="text-dark-400">&copy; 2024 DoaIbu Store. All rights reserved.</p>
+          <p className="text-gray-400">&copy; 2024 DoaIbu Store. All rights reserved.</p>
         </div>
       </footer>
+
+      {/* Live Chat Customer Component */}
+      <LiveChatCustomer />
     </main>
   )
 }

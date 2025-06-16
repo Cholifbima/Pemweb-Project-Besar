@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma, createUserSafely } from './db';
+import { NextRequest } from 'next/server';
 
 // JWT Secret - in production this should be in environment variables
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
@@ -150,8 +151,49 @@ export async function loginUser(emailOrUsername: string, password: string): Prom
   }
 }
 
-// Get user by token
-export async function getUserFromToken(token: string) {
+// Get user by token (for chat APIs)
+export async function getUserFromToken(request: NextRequest) {
+  try {
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new Error('No authorization header');
+    }
+
+    const token = authHeader.substring(7);
+    const payload = verifyToken(token);
+    if (!payload) {
+      throw new Error('Invalid token');
+    }
+
+    // Get user from database
+    const user = await prisma.user.findUnique({
+      where: { id: payload.id },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        fullName: true,
+        phoneNumber: true,
+        favoriteGames: true,
+        totalSpent: true,
+        balance: true,
+        createdAt: true,
+      }
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    return user;
+  } catch (error: any) {
+    console.error('getUserFromToken error:', error);
+    return null;
+  }
+}
+
+// Get user by token (legacy function for compatibility)
+export async function getUserFromTokenLegacy(token: string) {
   try {
     const payload = verifyToken(token);
     if (!payload) {
@@ -170,7 +212,7 @@ export async function getUserFromToken(token: string) {
           phoneNumber: true,
           favoriteGames: true,
           totalSpent: true,
-          // balance: true, // Commented out until Prisma client recognizes this field
+          balance: true,
           createdAt: true,
         }
       });
@@ -203,42 +245,71 @@ export async function getUserFromToken(token: string) {
           throw new Error('User tidak ditemukan');
         }
 
-        // Return user without balance (will be fetched separately when needed)
+        // Get balance from raw SQL
+        const balanceResult = await prisma.$queryRaw<{balance: number}[]>`
+          SELECT balance FROM users WHERE id = ${payload.id}
+        `;
+
+        const balance = balanceResult[0]?.balance || 0;
+
         return { 
           success: true, 
-          user: {
-            ...user,
-            // Note: balance will be fetched separately using raw SQL when needed
-          }
+          user: { 
+            ...user, 
+            balance 
+          } 
         };
       }
-      
       throw error;
     }
   } catch (error: any) {
-    console.error('getUserFromToken error:', error);
+    console.error('Get user from token error:', error);
     return { success: false, error: error.message };
   }
 }
 
-// Middleware to protect routes
+// Verify user token and get user data
+export function verifyUserToken(token: string): Promise<any> {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const payload = verifyToken(token);
+      if (!payload) {
+        reject(new Error('Token tidak valid'));
+        return;
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { id: payload.id }
+      });
+
+      if (!user) {
+        reject(new Error('User tidak ditemukan'));
+        return;
+      }
+
+      resolve(user);
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
+// Middleware to require authentication
 export function requireAuth(handler: any) {
   return async (req: any, res: any) => {
     try {
-      const token = req.headers.authorization?.replace('Bearer ', '');
-      if (!token) {
-        return res.status(401).json({ error: 'Token tidak ditemukan' });
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'No token provided' });
       }
 
-      const userResult = await getUserFromToken(token);
-      if (!userResult.success) {
-        return res.status(401).json({ error: userResult.error });
-      }
-
-      req.user = userResult.user;
+      const token = authHeader.substring(7);
+      const user = await verifyUserToken(token);
+      
+      req.user = user;
       return handler(req, res);
-    } catch (error) {
-      return res.status(401).json({ error: 'Unauthorized' });
+    } catch (error: any) {
+      return res.status(401).json({ error: error.message });
     }
   };
 } 

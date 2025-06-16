@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircle, MessageCircle, Headphones, FileText, Star, ArrowLeft } from 'lucide-react'
 import AIChatBot from '@/components/AIChatBot'
 
-export default function SupportPage() {
+function SupportContent() {
   const [showAIChat, setShowAIChat] = useState(false)
   const [transactionData, setTransactionData] = useState<any>(null)
   const searchParams = useSearchParams()
@@ -24,6 +24,13 @@ export default function SupportPage() {
       })
     }
   }, [searchParams])
+
+  const handleContactAdmin = () => {
+    // Trigger the live chat by dispatching an event
+    console.log('Triggering live chat from support page')
+    const event = new CustomEvent('openLiveChat')
+    window.dispatchEvent(event)
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
@@ -98,7 +105,10 @@ export default function SupportPage() {
             </div>
 
             {/* Human Customer Service */}
-            <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-orange-500/20 p-6 hover:border-orange-500/40 transition-all duration-300 cursor-pointer transform hover:scale-105">
+            <div 
+              onClick={handleContactAdmin}
+              className="bg-black/20 backdrop-blur-md rounded-2xl border border-orange-500/20 p-6 hover:border-orange-500/40 transition-all duration-300 cursor-pointer transform hover:scale-105"
+            >
               <div className="text-center">
                 <div className="w-16 h-16 bg-gradient-to-r from-orange-600 to-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Headphones className="w-8 h-8 text-white" />
@@ -148,10 +158,10 @@ export default function SupportPage() {
                 🎮 Top Up Lagi
               </Link>
               <button 
-                onClick={() => setShowAIChat(true)}
+                onClick={handleContactAdmin}
                 className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105"
               >
-                💬 Butuh Bantuan?
+                💬 Chat Live Admin
               </button>
             </div>
           </div>
@@ -196,7 +206,20 @@ export default function SupportPage() {
       <AIChatBot 
         isOpen={showAIChat}
         onClose={() => setShowAIChat(false)}
+        onContactAdmin={handleContactAdmin}
       />
     </div>
+  )
+}
+
+export default function SupportPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    }>
+      <SupportContent />
+    </Suspense>
   )
 } 

@@ -11,12 +11,12 @@ import Invoice from '@/components/Invoice'
 interface Transaction {
   id: string
   type: string
-  gameId: string
+  gameId: string | null
   itemId: string | null
   serviceId: string | null
   amount: number
-  userGameId: string
-  email: string
+  userGameId: string | null
+  email: string | null
   status: string
   createdAt: string
 }
@@ -384,8 +384,8 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <div className="text-xs text-gray-500 mb-2">
-                      <p>Game: {transaction.gameId.toUpperCase()}</p>
-                      <p>User ID: {transaction.userGameId}</p>
+                      <p>Game: {transaction.gameId ? transaction.gameId.toUpperCase() : 'ADMIN'}</p>
+                      <p>User ID: {transaction.userGameId || '-'}</p>
                       <p>{new Date(transaction.createdAt).toLocaleString('id-ID')}</p>
                     </div>
                     <div className="text-xs text-green-400 font-medium">
@@ -414,12 +414,12 @@ export default function DashboardPage() {
             customer: {
               name: (user as any)?.fullName || user?.username || 'User',
               email: user?.email || '',
-              gameEmail: selectedTransaction.email,
-              gameUserId: selectedTransaction.userGameId
+              gameEmail: selectedTransaction.email || '',
+              gameUserId: selectedTransaction.userGameId || ''
             },
             transaction: {
               type: selectedTransaction.type,
-              gameId: selectedTransaction.gameId,
+              gameId: selectedTransaction.gameId || 'ADMIN',
               itemId: selectedTransaction.itemId || undefined,
               serviceId: selectedTransaction.serviceId || undefined,
               amount: selectedTransaction.amount,

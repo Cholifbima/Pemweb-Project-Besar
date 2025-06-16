@@ -1,12 +1,14 @@
 {
-  "/support/page": "app/support/page.js",
-  "/top-up/page": "app/top-up/page.js",
   "/page": "app/page.js",
-  "/boost-services/page": "app/boost-services/page.js",
-  "/login/page": "app/login/page.js",
-  "/api/auth/login/route": "app/api/auth/login/route.js",
-  "/dashboard/page": "app/dashboard/page.js",
-  "/api/auth/me/route": "app/api/auth/me/route.js",
+  "/api/chat/admins/route": "app/api/chat/admins/route.js",
+  "/api/chat/recent/[adminId]/route": "app/api/chat/recent/[adminId]/route.js",
+  "/api/chat/start/route": "app/api/chat/start/route.js",
   "/_not-found/page": "app/_not-found/page.js",
-  "/api/transactions/history/route": "app/api/transactions/history/route.js"
+  "/api/chat/messages/[sessionId]/route": "app/api/chat/messages/[sessionId]/route.js",
+  "/api/chat/upload/route": "app/api/chat/upload/route.js",
+  "/api/uploads/[...path]/route": "app/api/uploads/[...path]/route.js",
+  "/api/admin/auth/me/route": "app/api/admin/auth/me/route.js",
+  "/api/auth/me/route": "app/api/auth/me/route.js",
+  "/admin/login/page": "app/admin/login/page.js",
+  "/admin/dashboard/page": "app/admin/dashboard/page.js"
 }
