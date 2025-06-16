@@ -123,7 +123,6 @@ export default function Navigation() {
 
   const navLinks = [
     { href: '/top-up', label: 'Top Up', icon: Gamepad },
-    { href: '/transactions', label: 'Cek Transaksi', icon: Trophy },
     { href: '/boost-services', label: 'Joki Game', icon: Trophy },
     { href: '/contact', label: 'Contact', icon: Phone },
   ]

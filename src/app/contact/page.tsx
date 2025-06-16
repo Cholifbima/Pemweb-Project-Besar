@@ -96,7 +96,7 @@ export default function ContactPage() {
       isMobileMenuOpen ? 'md:ml-0 ml-[40%]' : 'ml-0'
     }`}>
       {/* Main Content with Gradient Background */}
-      <div className="bg-gradient-to-b from-green-900/40 via-green-800/20 to-black">
+      <div className="bg-gradient-to-br from-slate-900 via-green-900 to-slate-900">
         {/* Hero Section */}
         <section className="py-20 px-4">
           <div className="container mx-auto text-center">
@@ -269,14 +269,14 @@ export default function ContactPage() {
 
         {/* Full-width Banner with gradient background to match above sections */}
         <div className="w-full relative bg-gradient-to-b from-green-900/10 to-black py-8">
-          <div className="w-full">
+          <div className="w-full max-w-7xl mx-auto">
             <Image 
               src={banner.src} 
               alt="DoaIbu Store Banner"
               width={0}
               height={0}
               sizes="100vw"
-              className="w-full h-auto object-contain"
+              className="w-full h-auto object-contain max-h-96 md:max-h-[500px]"
               priority
             />
           </div>

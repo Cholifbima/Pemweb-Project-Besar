@@ -64,7 +64,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Main Content with Gradient Background */}
-      <div className="bg-gradient-to-b from-green-900/40 via-green-800/20 to-black py-16 px-4">
+      <div className="bg-gradient-to-br from-slate-900 via-green-900 to-slate-900 py-16 px-4">
         <div className="max-w-md mx-auto">
           {/* Header */}
           <div className="text-center mb-8">

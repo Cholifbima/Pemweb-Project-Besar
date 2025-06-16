@@ -207,14 +207,14 @@ export default function GameBoostPage() {
 
   if (!game) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-green-900/40 via-green-800/20 to-black flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-green-900 to-slate-900 flex items-center justify-center">
         <div className="text-white text-xl">Game tidak ditemukan...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-900/40 via-green-800/20 to-black">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-green-900 to-slate-900">
       {/* Header */}
       <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <Link 

@@ -114,8 +114,8 @@ export default function BoostServicesPage() {
     <div className={`min-h-screen bg-black text-white transition-all duration-300 ease-in-out ${
       isMobileMenuOpen ? 'md:ml-0 ml-[40%]' : 'ml-0'
     }`}>
-      {/* Main Content with Gradient Background */}
-      <div className="bg-gradient-to-b from-green-900/40 via-green-800/20 to-black">
+      {/* Main Content with Modern Gradient Background */}
+      <div className="bg-gradient-to-br from-slate-900 via-green-900 to-slate-900">
         {/* Hero Section with Animated Slider */}
         <section className="relative py-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
@@ -261,80 +261,60 @@ export default function BoostServicesPage() {
               {filteredGames.map((game, index) => (
                 <div key={game.id} className="group cursor-pointer animate-fade-in-up" style={{ animationDelay: `${index * 0.1}s` }}>
                   <Link href={`/boost-services/${game.id}`}>
-                    <div className="bg-dark-800/50 backdrop-blur-md rounded-xl border border-dark-700 hover:border-green-500/50 transition-all duration-300 p-6 hover:shadow-lg hover:shadow-green-500/20">
-                      {/* Game Icon and Badge */}
-                      <div className="relative mb-4">
-                        <div className="relative w-16 h-16">
+                    <div className="bg-dark-800/50 border border-dark-700 rounded-lg overflow-hidden shadow-lg hover:shadow-yellow-400/20 hover:border-yellow-400/50 transition-all duration-300 group">
+                      {/* Game Icon/Logo - Same size as top-up */}
+                      <div className="aspect-square bg-dark-700/50 flex items-center justify-center relative overflow-hidden">
+                        {/* Game Logo */}
+                        <div className="relative w-full h-full group-hover:scale-105 transition-transform duration-300">
                           <Image 
                             src={getLogoByGameId(game.id)}
                             alt={game.name}
                             fill
-                            className="object-contain"
+                            className="object-cover p-2"
                           />
                         </div>
+                        
+                        {/* Popular Badge */}
                         {game.isPopular && (
-                          <div className="absolute top-0 right-0 bg-gradient-to-r from-green-400 to-green-500 text-black text-xs font-bold px-2 py-1 rounded-full animate-pulse">
+                          <div className="absolute top-2 right-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white text-xs font-bold px-2 py-1 rounded-full">
                             🔥 HOT
                           </div>
                         )}
-                      </div>
-
-                      {/* Game Info */}
-                      <h3 className="text-xl font-bold text-white mb-2 group-hover:text-green-300 transition-colors">
-                        {game.name}
-                      </h3>
-                      <p className="text-dark-400 text-sm mb-3 line-clamp-2">{game.description}</p>
-                      
-                      {/* Rating and Publisher */}
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center">
-                          <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                          <span className="text-yellow-400 font-semibold text-sm">{game.rating}</span>
+                        
+                        {/* Rating Badge */}
+                        <div className="absolute top-2 left-2 bg-dark-900/80 backdrop-blur-sm flex items-center px-2 py-1 rounded-full">
+                          <Star className="w-3 h-3 text-yellow-400 mr-1" />
+                          <span className="text-yellow-400 font-semibold text-xs">{game.rating}</span>
                         </div>
-                        <span className="text-dark-500 text-xs">{game.publisher}</span>
+
+                        {/* Hover Effect - Joki themed */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-yellow-500/90 to-green-600/90 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center text-white p-4">
+                          <h3 className="text-xl font-bold text-white mb-1">{game.name}</h3>
+                          <p className="text-sm text-white/90 mb-3">Mulai dari {formatCurrency(game.boostServices?.[0]?.price || 0)}</p>
+                          <span className="inline-block bg-dark-900/60 text-yellow-400 px-4 py-1.5 rounded-full text-sm font-bold">
+                            Joki Now
+                          </span>
+                        </div>
                       </div>
 
-                      {/* Services Info */}
-                      <div className="border-t border-dark-700/50 pt-4 mb-4">
+                      {/* Joki Info at Bottom */}
+                      <div className="p-3 border-t border-dark-700/50 bg-dark-800/80">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-dark-400 text-sm">Layanan tersedia</span>
-                          <span className="text-green-400 font-bold text-sm">
+                          <span className="text-dark-400 text-xs">Layanan Joki</span>
+                          <span className="text-yellow-400 font-bold text-sm">
                             {game.boostServices?.length || 0} jenis
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-dark-400 text-sm">Mulai dari</span>
-                          <span className="text-green-400 font-bold">
+                          <span className="text-dark-400 text-xs">Mulai dari</span>
+                          <span className="text-yellow-400 font-bold text-sm">
                             {formatCurrency(game.boostServices?.[0]?.price || 0)}
                           </span>
                         </div>
                       </div>
-
-                      {/* Service Features */}
-                      <div className="space-y-2 mb-4">
-                        <div className="flex items-center text-xs text-dark-400">
-                          <Crown className="w-3 h-3 mr-2 text-yellow-400" />
-                          Pro Player
-                        </div>
-                        <div className="flex items-center text-xs text-dark-400">
-                          <Target className="w-3 h-3 mr-2 text-green-400" />
-                          Win Rate Tinggi
-                        </div>
-                        <div className="flex items-center text-xs text-dark-400">
-                          <Clock className="w-3 h-3 mr-2 text-green-400" />
-                          Proses Cepat
-                        </div>
-                      </div>
-
-                      {/* Hover Effect */}
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="flex items-center justify-center bg-gradient-to-r from-green-600 to-green-700 text-white py-2 rounded-lg font-semibold cursor-pointer">
-                          <Zap className="w-4 h-4 mr-2" />
-                          Boost Sekarang
-                        </div>
-                      </div>
                     </div>
                   </Link>
+
                 </div>
               ))}
             </div>
@@ -383,14 +363,14 @@ export default function BoostServicesPage() {
 
         {/* Full-width Banner with gradient background */}
         <div className="w-full relative bg-gradient-to-b from-green-900/10 to-black py-8">
-          <div className="w-full">
+          <div className="w-full max-w-7xl mx-auto">
             <Image 
               src={banner.src} 
               alt="DoaIbu Store Banner"
               width={0}
               height={0}
               sizes="100vw"
-              className="w-full h-auto object-contain"
+              className="w-full h-auto object-contain max-h-96 md:max-h-[500px]"
               priority
             />
           </div>

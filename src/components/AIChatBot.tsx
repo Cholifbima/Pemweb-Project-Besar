@@ -233,9 +233,9 @@ export default function AIChatBot({ isOpen, onClose }: AIChatBotProps) {
                     <div className="mb-2 p-2 bg-black/20 rounded border border-gray-600">
                       <div className="flex items-center text-sm">
                         {message.file.type.startsWith('image/') ? (
-                          <Image className="w-4 h-4 mr-2" />
+                          <Image className="w-4 h-4 mr-2" aria-hidden="true" />
                         ) : (
-                          <FileText className="w-4 h-4 mr-2" />
+                          <FileText className="w-4 h-4 mr-2" aria-hidden="true" />
                         )}
                         {message.file.name}
                       </div>

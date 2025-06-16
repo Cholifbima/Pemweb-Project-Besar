@@ -170,8 +170,8 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Main content area with gradient background from light to dark green */}
-        <div className="bg-gradient-to-b from-green-700/30 via-green-800/20 to-green-900/10">
+        {/* Main content area with modern gradient background */}
+        <div className="bg-gradient-to-br from-slate-900 via-green-900 to-slate-900">
           {/* 4. Produk Populer */}
           <section className="py-8 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
@@ -254,14 +254,14 @@ export default function Home() {
           
         {/* Full-width Banner after joki section with gradient background to match above sections */}
         <div className="w-full relative bg-gradient-to-b from-green-900/10 to-black">
-          <div className="w-full">
+          <div className="w-full max-w-7xl mx-auto">
             <Image 
               src={banner.src} 
               alt="DoaIbu Store Banner"
               width={0}
               height={0}
               sizes="100vw"
-              className="w-full h-auto object-contain"
+              className="w-full h-auto object-contain max-h-96 md:max-h-[500px]"
               priority
             />
           </div>

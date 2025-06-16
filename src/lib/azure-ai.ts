@@ -1,13 +1,18 @@
-import { OpenAIClient, AzureKeyCredential } from '@azure/openai'
+import OpenAI from 'openai'
+import { AzureKeyCredential } from '@azure/core-auth'
 import { DocumentAnalysisClient } from '@azure/ai-form-recognizer'
 import { BlobServiceClient } from '@azure/storage-blob'
 import { azureConfig } from './azure-config'
 
-// Initialize Azure OpenAI Client
-export const openaiClient = new OpenAIClient(
-  azureConfig.openai.endpoint,
-  new AzureKeyCredential(azureConfig.openai.apiKey)
-)
+// Initialize Azure OpenAI Client using standard OpenAI SDK
+export const openaiClient = new OpenAI({
+  apiKey: azureConfig.openai.apiKey,
+  baseURL: `${azureConfig.openai.endpoint}/openai/deployments/${azureConfig.openai.deploymentName}`,
+  defaultQuery: { 'api-version': azureConfig.openai.apiVersion },
+  defaultHeaders: {
+    'api-key': azureConfig.openai.apiKey,
+  },
+})
 
 // Initialize Azure Document Intelligence Client
 export const documentClient = new DocumentAnalysisClient(
@@ -77,15 +82,13 @@ export async function chatWithAI(message: string, chatHistory: any[] = []) {
       }
     ]
 
-    const response = await openaiClient.getChatCompletions(
-      azureConfig.openai.deploymentName,
-      messages,
-      {
-        maxTokens: 500,
-        temperature: 0.7,
-        topP: 0.9
-      }
-    )
+    const response = await openaiClient.chat.completions.create({
+      model: azureConfig.openai.deploymentName,
+      messages: messages,
+      max_tokens: 500,
+      temperature: 0.7,
+      top_p: 0.9
+    })
 
     return {
       success: true,
