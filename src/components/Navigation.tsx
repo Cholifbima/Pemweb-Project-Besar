@@ -19,6 +19,11 @@ export default function Navigation() {
   const pathname = usePathname()
   const searchInputRef = useRef<HTMLInputElement>(null)
 
+  // Hide navigation bar on admin routes
+  if (pathname?.startsWith('/admin')) {
+    return null
+  }
+
   // Prevent scrolling when mobile menu is open and dispatch custom event
   useEffect(() => {
     if (isMobileMenuOpen) {
@@ -305,8 +310,8 @@ export default function Navigation() {
             </button>
           </div>
           
-          {/* Navigation Links */}
-          <div className="py-4 overflow-y-auto h-[calc(100vh-70px)] flex flex-col bg-dark-800" style={{ paddingLeft: 0 }}>
+          {/* Navigation Links & User Section */}
+          <div className="py-4 overflow-y-auto flex flex-col bg-dark-800 max-h-screen pb-32" style={{ paddingLeft: 0 }}>
             <div className="space-y-1 pr-3 flex-1">
               {navLinks.map((link) => {
                 const Icon = link.icon

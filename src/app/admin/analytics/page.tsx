@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
+import React from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAdmin } from '@/contexts/AdminContext'
 import AdminNavigation from '@/components/AdminNavigation'
@@ -14,16 +15,31 @@ import {
   ArrowUp,
   ArrowDown
 } from 'lucide-react'
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
 export default function AdminAnalyticsPage() {
   const { admin, isLoading, isAuthenticated } = useAdmin()
   const router = useRouter()
+  const [stats, setStats] = useState<any>(null)
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push('/admin/login')
     }
   }, [isLoading, isAuthenticated, router])
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      const token = localStorage.getItem('adminToken')
+      if(!token) return;
+      const res = await fetch('/api/admin/analytics', { headers:{ Authorization: `Bearer ${token}` } })
+      if (res.ok) {
+        const d = await res.json()
+        setStats(d)
+      }
+    }
+    if (isAuthenticated) fetchStats()
+  }, [isAuthenticated])
 
   if (isLoading) {
     return (
@@ -37,16 +53,6 @@ export default function AdminAnalyticsPage() {
     return null
   }
 
-  // Mock data for analytics
-  const revenueData = [
-    { month: 'Jan', amount: 12000 },
-    { month: 'Feb', amount: 19000 },
-    { month: 'Mar', amount: 15000 },
-    { month: 'Apr', amount: 22000 },
-    { month: 'May', amount: 28000 },
-    { month: 'Jun', amount: 25000 },
-  ]
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
@@ -54,6 +60,20 @@ export default function AdminAnalyticsPage() {
       minimumFractionDigits: 0,
     }).format(amount)
   }
+
+  const getChangeMeta = (val:number)=>{
+    const positive = val>=0
+    return {
+      icon: positive? ArrowUp: ArrowDown,
+      color: positive? 'text-green-400':'text-red-400',
+      display: `${positive?'+':''}${Math.abs(val).toFixed(1)}%`
+    }
+  }
+
+  const revenueMeta = getChangeMeta(stats?.changes?.revenue||0)
+  const ordersMeta = getChangeMeta(stats?.changes?.orders||0)
+  const usersMeta = getChangeMeta(stats?.changes?.users||0)
+  const convMeta = getChangeMeta(stats?.changes?.conversion||0)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
@@ -82,13 +102,13 @@ export default function AdminAnalyticsPage() {
               <div className="p-3 bg-blue-500/20 rounded-xl">
                 <DollarSign className="w-6 h-6 text-blue-400" />
               </div>
-              <div className="flex items-center text-green-400">
-                <ArrowUp className="w-4 h-4 mr-1" />
-                <span className="text-xs font-medium">+12.5%</span>
+              <div className={`flex items-center ${revenueMeta.color}`}>
+                {React.createElement(revenueMeta.icon,{className:'w-4 h-4 mr-1'})}
+                <span className="text-xs font-medium">{revenueMeta.display}</span>
               </div>
             </div>
             <p className="text-gray-400 text-sm">Total Revenue</p>
-            <p className="text-2xl font-bold text-white">{formatCurrency(120000000)}</p>
+            <p className="text-2xl font-bold text-white">{formatCurrency(stats?.totalRevenue||0)}</p>
             <p className="text-xs text-gray-400 mt-2">Compared to last month</p>
           </div>
 
@@ -97,13 +117,13 @@ export default function AdminAnalyticsPage() {
               <div className="p-3 bg-purple-500/20 rounded-xl">
                 <ShoppingCart className="w-6 h-6 text-purple-400" />
               </div>
-              <div className="flex items-center text-green-400">
-                <ArrowUp className="w-4 h-4 mr-1" />
-                <span className="text-xs font-medium">+8.2%</span>
+              <div className={`flex items-center ${ordersMeta.color}`}>
+                {React.createElement(ordersMeta.icon,{className:'w-4 h-4 mr-1'})}
+                <span className="text-xs font-medium">{ordersMeta.display}</span>
               </div>
             </div>
             <p className="text-gray-400 text-sm">Total Orders</p>
-            <p className="text-2xl font-bold text-white">1,543</p>
+            <p className="text-2xl font-bold text-white">{stats?.totalOrders?.toLocaleString('id-ID')||0}</p>
             <p className="text-xs text-gray-400 mt-2">Compared to last month</p>
           </div>
 
@@ -112,13 +132,13 @@ export default function AdminAnalyticsPage() {
               <div className="p-3 bg-green-500/20 rounded-xl">
                 <Users className="w-6 h-6 text-green-400" />
               </div>
-              <div className="flex items-center text-green-400">
-                <ArrowUp className="w-4 h-4 mr-1" />
-                <span className="text-xs font-medium">+5.7%</span>
+              <div className={`flex items-center ${usersMeta.color}`}>
+                {React.createElement(usersMeta.icon,{className:'w-4 h-4 mr-1'})}
+                <span className="text-xs font-medium">{usersMeta.display}</span>
               </div>
             </div>
             <p className="text-gray-400 text-sm">New Users</p>
-            <p className="text-2xl font-bold text-white">287</p>
+            <p className="text-2xl font-bold text-white">{stats?.newUsers?.toLocaleString('id-ID')||0}</p>
             <p className="text-xs text-gray-400 mt-2">Compared to last month</p>
           </div>
 
@@ -127,13 +147,13 @@ export default function AdminAnalyticsPage() {
               <div className="p-3 bg-yellow-500/20 rounded-xl">
                 <TrendingUp className="w-6 h-6 text-yellow-400" />
               </div>
-              <div className="flex items-center text-red-400">
-                <ArrowDown className="w-4 h-4 mr-1" />
-                <span className="text-xs font-medium">-2.3%</span>
+              <div className={`flex items-center ${convMeta.color}`}>
+                {React.createElement(convMeta.icon,{className:'w-4 h-4 mr-1'})}
+                <span className="text-xs font-medium">{convMeta.display}</span>
               </div>
             </div>
             <p className="text-gray-400 text-sm">Conversion Rate</p>
-            <p className="text-2xl font-bold text-white">3.42%</p>
+            <p className="text-2xl font-bold text-white">{(stats?.conversionRate||0).toFixed(2)}%</p>
             <p className="text-xs text-gray-400 mt-2">Compared to last month</p>
           </div>
         </div>
@@ -154,78 +174,65 @@ export default function AdminAnalyticsPage() {
             </div>
           </div>
           
-          <div className="h-80 flex items-end space-x-6">
-            {revenueData.map((item, index) => (
-              <div key={index} className="flex-1 flex flex-col items-center">
-                <div className="w-full bg-blue-900/30 rounded-t-lg" style={{ height: `${(item.amount / 30000) * 100}%` }}>
-                  <div className="w-full bg-blue-500 rounded-t-lg" style={{ height: `${(item.amount / 30000) * 70}%` }}></div>
-                </div>
-                <div className="text-xs text-gray-400 mt-2">{item.month}</div>
-                <div className="text-xs font-medium text-white">{formatCurrency(item.amount * 1000)}</div>
-              </div>
-            ))}
+          <div className="h-80">
+            {stats && (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={stats.monthlyRevenue}>
+                  <XAxis dataKey="label" stroke="#94a3b8" />
+                  <YAxis stroke="#94a3b8" tickFormatter={(v)=>`Rp ${(v/1_000_000).toFixed(0)}M`} />
+                  <Tooltip formatter={(v)=>formatCurrency(Number(v))} />
+                  <Line type="monotone" dataKey="value" stroke="#60a5fa" strokeWidth={3} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
         {/* Top Products & Recent Orders */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-blue-500/20 p-6">
-            <h3 className="text-xl font-bold text-white mb-4">Top Products</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-white">Top Products</h3>
+              <button onClick={()=>router.push('/admin/analytics/top-products')} className="text-sm text-blue-400 hover:underline">View more</button>
+            </div>
             <div className="space-y-4">
-              {[
-                { name: 'Mobile Legends Diamonds', sales: 452, amount: 45200000 },
-                { name: 'PUBG Mobile UC', sales: 389, amount: 38900000 },
-                { name: 'Free Fire Diamonds', sales: 356, amount: 35600000 },
-                { name: 'Valorant Points', sales: 298, amount: 29800000 },
-                { name: 'Genshin Impact Genesis', sales: 245, amount: 24500000 },
-              ].map((product, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center mr-3">
-                      <span className="text-blue-400 font-bold">{index + 1}</span>
+              {stats?.topProducts?.length ? (
+                stats.topProducts.map((p:any,index:number)=>(
+                  <div key={index} className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center mr-3">
+                        <span className="text-blue-400 font-bold">{index+1}</span>
+                      </div>
+                      <div>
+                        <p className="text-white font-medium">{p.name}</p>
+                        <p className="text-sm text-gray-400">{p.sales} sales</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-white font-medium">{product.name}</p>
-                      <p className="text-sm text-gray-400">{product.sales} sales</p>
+                    <div className="text-right">
+                      <p className="text-white font-medium">{formatCurrency(p.amount)}</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-white font-medium">{formatCurrency(product.amount)}</p>
-                  </div>
-                </div>
-              ))}
+                ))
+              ):(<p className="text-gray-500 text-sm">No data</p>)}
             </div>
           </div>
           
           <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-blue-500/20 p-6">
-            <h3 className="text-xl font-bold text-white mb-4">Recent Orders</h3>
-            <div className="space-y-4">
-              {[
-                { id: '#ORD-7291', user: 'Budi Santoso', product: 'Mobile Legends Diamonds', amount: 150000, status: 'completed' },
-                { id: '#ORD-7290', user: 'Dewi Putri', product: 'PUBG Mobile UC', amount: 250000, status: 'processing' },
-                { id: '#ORD-7289', user: 'Ahmad Fauzi', product: 'Free Fire Diamonds', amount: 75000, status: 'completed' },
-                { id: '#ORD-7288', user: 'Siti Aminah', product: 'Valorant Points', amount: 180000, status: 'completed' },
-                { id: '#ORD-7287', user: 'Rudi Hermawan', product: 'Genshin Impact Genesis', amount: 325000, status: 'failed' },
-              ].map((order, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div>
-                    <p className="text-white font-medium">{order.id}</p>
-                    <p className="text-sm text-gray-400">{order.user}</p>
-                    <p className="text-xs text-gray-500">{order.product}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-white font-medium">{formatCurrency(order.amount)}</p>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      order.status === 'completed' ? 'bg-green-500/20 text-green-400' : 
-                      order.status === 'processing' ? 'bg-yellow-500/20 text-yellow-400' : 
-                      'bg-red-500/20 text-red-400'
-                    }`}>
-                      {order.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-white">Recent Orders</h3>
+              <button onClick={()=>router.push('/admin/analytics/orders')} className="text-sm text-blue-400 hover:underline">View more</button>
             </div>
+            {stats?.recentOrders?.length ? stats.recentOrders.map((o:any)=>(
+              <div key={o.id} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0 text-sm text-white/90">
+                <div>
+                  #{o.id}<br/>
+                  <span className="text-gray-400 text-xs">{o.user}&nbsp;•&nbsp;{o.product}</span>
+                </div>
+                <div className="text-right">
+                  {formatCurrency(o.total)}
+                </div>
+              </div>
+            )) : (<p className="text-gray-500 text-sm">No orders</p>)}
           </div>
         </div>
       </main>

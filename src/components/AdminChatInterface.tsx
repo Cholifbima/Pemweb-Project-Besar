@@ -12,11 +12,14 @@ import {
   Download,
   Search,
   AlertCircle,
-  CheckCircle2,
+  Check,
   Image,
-  Paperclip
+  Paperclip,
+  X as CloseIcon,
+  ArrowLeft
 } from 'lucide-react'
 import { HubConnectionBuilder, HubConnection, LogLevel } from '@microsoft/signalr'
+import ImagePreviewModal from './ImagePreviewModal'
 
 interface Customer {
   id: number
@@ -60,6 +63,8 @@ export default function AdminChatInterface() {
   const [isConnected, setIsConnected] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [isUploading, setIsUploading] = useState(false)
+  const [previewImage, setPreviewImage] = useState<string | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -507,6 +512,13 @@ export default function AdminChatInterface() {
     }
   }
 
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
   if (!isAuthenticated || !admin) {
     return (
       <div className="p-8 text-center">
@@ -518,9 +530,10 @@ export default function AdminChatInterface() {
   }
 
   return (
+    <>
     <div className="h-full flex">
       {/* Sessions Sidebar */}
-      <div className="w-80 bg-slate-800 border-r border-slate-700 flex flex-col">
+      <div className={`bg-slate-800 border-r border-slate-700 flex flex-col ${selectedSession && isMobile ? 'hidden' : 'w-full md:w-80'}`}>
         {/* Header */}
         <div className="p-4 border-b border-slate-700">
           <div className="flex items-center justify-between mb-4">
@@ -653,11 +666,16 @@ export default function AdminChatInterface() {
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 flex flex-col">
+      <div className={`${!selectedSession && isMobile ? 'hidden' : 'flex-1 flex flex-col'}`}>
         {selectedSession ? (
           <>
             {/* Chat Header */}
             <div className="bg-slate-800 p-4 border-b border-slate-700 flex items-center justify-between">
+              {isMobile && (
+                <button onClick={() => setSelectedSession(null)} className="mr-3 text-gray-400 hover:text-white focus:outline-none">
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
+              )}
               <div className="flex items-center">
                 <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mr-3">
                   <span className="text-white font-semibold">
@@ -718,8 +736,9 @@ export default function AdminChatInterface() {
                             <img 
                               src={message.fileUrl} 
                               alt={message.fileName || 'Image'}
-                              className="max-w-full h-auto rounded-lg"
+                              className="max-w-full h-auto rounded-lg cursor-pointer"
                               style={{ maxHeight: '200px' }}
+                              onClick={() => setPreviewImage(message.fileUrl!)}
                             />
                             <div className="flex items-center space-x-2">
                               <Image className="w-4 h-4" />
@@ -779,7 +798,7 @@ export default function AdminChatInterface() {
                         {formatTime(message.createdAt)}
                       </p>
                       {!message.isFromUser && (
-                        <CheckCircle2 className={`w-3 h-3 ${message.isRead ? 'text-blue-400' : 'text-gray-400'}`} />
+                        <Check className={`w-3 h-3 ${message.isRead ? 'text-blue-400' : 'text-gray-400'}`} />
                       )}
                     </div>
                   </div>
@@ -829,5 +848,9 @@ export default function AdminChatInterface() {
         )}
       </div>
     </div>
+    {previewImage && (
+      <ImagePreviewModal url={previewImage} onClose={() => setPreviewImage(null)} />
+    )}
+    </>
   )
 } 

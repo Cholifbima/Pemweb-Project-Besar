@@ -39,6 +39,8 @@ export default function AdminUsersPage() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [balanceAmount, setBalanceAmount] = useState<string>('')
   const [showAddBalanceModal, setShowAddBalanceModal] = useState(false)
+  const [actionType, setActionType] = useState<'add' | 'subtract'>('add')
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -103,7 +105,8 @@ export default function AdminUsersPage() {
         },
         body: JSON.stringify({
           userId,
-          amount: Number(balanceAmount)
+          amount: Number(balanceAmount),
+          action: actionType
         })
       })
 
@@ -113,7 +116,7 @@ export default function AdminUsersPage() {
           if (user.id === userId) {
             return {
               ...user,
-              balance: user.balance + Number(balanceAmount)
+              balance: actionType === 'add' ? user.balance + Number(balanceAmount) : user.balance - Number(balanceAmount)
             }
           }
           return user
@@ -123,12 +126,35 @@ export default function AdminUsersPage() {
         setShowAddBalanceModal(false)
         setBalanceAmount('')
         setSelectedUser(null)
+        setActionType('add')
       } else {
         alert('Failed to add balance')
       }
     } catch (error) {
       console.error('Error adding balance:', error)
       alert('An error occurred')
+    }
+  }
+
+  const handleDeleteUser = async (userId: number) => {
+    try {
+      const token = localStorage.getItem('adminToken')
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if(res.ok){
+        const newUsers = users.filter(u=>u.id!==userId)
+        setUsers(newUsers)
+        setFilteredUsers(newUsers)
+        setShowDeleteModal(false)
+        setSelectedUser(null)
+      }else{
+        alert('Failed to delete user')
+      }
+    }catch(err){
+      console.error(err)
+      alert('Error deleting user')
     }
   }
 
@@ -259,7 +285,10 @@ export default function AdminUsersPage() {
                         <button className="text-yellow-400 hover:text-yellow-300 mr-3">
                           <Edit3 className="h-5 w-5" />
                         </button>
-                        <button className="text-red-400 hover:text-red-300">
+                        <button
+                          className="text-red-400 hover:text-red-300"
+                          onClick={() => { setSelectedUser(user); setShowDeleteModal(true) }}
+                        >
                           <Trash2 className="h-5 w-5" />
                         </button>
                       </td>
@@ -276,7 +305,7 @@ export default function AdminUsersPage() {
       {showAddBalanceModal && selectedUser && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-dark-800 rounded-2xl border border-blue-500/20 p-6 w-full max-w-md">
-            <h3 className="text-xl font-bold text-white mb-4">Add Balance</h3>
+            <h3 className="text-xl font-bold text-white mb-4">{actionType === 'add' ? 'Add Balance' : 'Subtract Balance'}</h3>
             <p className="text-gray-400 mb-4">
               Adding balance to user: <span className="text-white font-medium">{selectedUser.username}</span>
             </p>
@@ -292,7 +321,7 @@ export default function AdminUsersPage() {
             
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Amount to Add
+                Amount to {actionType === 'add' ? 'Add' : 'Subtract'}
               </label>
               <div className="relative">
                 <input
@@ -308,12 +337,33 @@ export default function AdminUsersPage() {
               </div>
             </div>
             
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Action</label>
+              <div className="flex space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setActionType('add')}
+                  className={`px-4 py-2 rounded-lg ${actionType === 'add' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'}`}
+                >
+                  Add
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActionType('subtract')}
+                  className={`px-4 py-2 rounded-lg ${actionType === 'subtract' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'}`}
+                >
+                  Subtract
+                </button>
+              </div>
+            </div>
+            
             <div className="flex items-center justify-end space-x-3">
               <button
                 onClick={() => {
                   setShowAddBalanceModal(false)
                   setSelectedUser(null)
                   setBalanceAmount('')
+                  setActionType('add')
                 }}
                 className="px-4 py-2 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-700 transition-colors"
               >
@@ -324,7 +374,31 @@ export default function AdminUsersPage() {
                 className="px-4 py-2 bg-blue-600 rounded-lg text-white hover:bg-blue-700 transition-colors flex items-center"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Add Balance
+                {actionType === 'add' ? 'Add Balance' : 'Subtract Balance'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Modal */}
+      {showDeleteModal && selectedUser && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-dark-800 rounded-2xl border border-red-500/20 p-6 w-full max-w-md">
+            <h3 className="text-xl font-bold text-white mb-4">Delete User</h3>
+            <p className="text-gray-300 mb-6">Are you sure you want to delete user <span className="font-medium text-white">{selectedUser.username}</span>? This action cannot be undone.</p>
+            <div className="flex items-center justify-end space-x-3">
+              <button
+                onClick={() => { setShowDeleteModal(false); setSelectedUser(null) }}
+                className="px-4 py-2 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteUser(selectedUser.id)}
+                className="px-4 py-2 bg-red-600 rounded-lg text-white hover:bg-red-700 transition-colors"
+              >
+                Delete
               </button>
             </div>
           </div>

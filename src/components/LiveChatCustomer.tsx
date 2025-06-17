@@ -13,9 +13,11 @@ import {
   Maximize2,
   Download,
   Image,
-  FileText
+  FileText,
+  Check
 } from 'lucide-react'
 import { HubConnectionBuilder, HubConnection, LogLevel } from '@microsoft/signalr'
+import ImagePreviewModal from './ImagePreviewModal'
 
 interface Admin {
   id: number
@@ -35,6 +37,7 @@ interface ChatMessage {
   fileName?: string
   fileSize?: number
   createdAt: string
+  isRead?: boolean
   admin?: {
     username: string
   }
@@ -73,6 +76,7 @@ export default function LiveChatCustomer({ onClose, onBack, isEmbedded = false }
   const [isUploading, setIsUploading] = useState(false)
   const [connection, setConnection] = useState<HubConnection | null>(null)
   const [isConnected, setIsConnected] = useState(false)
+  const [previewImage, setPreviewImage] = useState<string | null>(null)
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -807,8 +811,9 @@ export default function LiveChatCustomer({ onClose, onBack, isEmbedded = false }
                                     <img 
                                       src={message.fileUrl} 
                                       alt={message.fileName || 'Image'}
-                                      className="max-w-full h-auto rounded-lg"
+                                      className="max-w-full h-auto rounded-lg cursor-pointer"
                                       style={{ maxHeight: '200px' }}
+                                      onClick={() => setPreviewImage(message.fileUrl!)}
                                     />
                                     <div className="flex items-center space-x-2">
                                       <span className="text-lg">🖼️</span>
@@ -865,11 +870,11 @@ export default function LiveChatCustomer({ onClose, onBack, isEmbedded = false }
                               <p className="text-xs opacity-70">
                                 {formatTime(message.createdAt)}
                               </p>
-                              {!message.isFromUser && message.admin && (
-                                <p className="text-xs opacity-70">
-                                  {message.admin.username}
-                                </p>
-                              )}
+                              {message.isFromUser ? (
+                                <Check className={`w-3 h-3 ${message.isRead ? 'text-blue-400' : 'text-gray-400'}`} />
+                              ) : message.admin ? (
+                                <p className="text-xs opacity-70">{message.admin.username}</p>
+                              ) : null}
                             </div>
                           </div>
                         </div>
@@ -947,6 +952,10 @@ export default function LiveChatCustomer({ onClose, onBack, isEmbedded = false }
         className="hidden"
         accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.zip,.rar"
       />
+
+      {previewImage && (
+        <ImagePreviewModal url={previewImage} onClose={() => setPreviewImage(null)} />
+      )}
     </>
   )
 } 

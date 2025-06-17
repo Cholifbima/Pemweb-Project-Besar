@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAdmin } from '@/contexts/AdminContext'
 import { Shield, Users, MessageSquare, TrendingUp } from 'lucide-react'
@@ -9,12 +9,29 @@ import AdminNavigation from '@/components/AdminNavigation'
 export default function AdminDashboardPage() {
   const { admin, isLoading, isAuthenticated } = useAdmin()
   const router = useRouter()
+  const [stats, setStats] = useState({ users: 0, revenue: 0, live: 0 })
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push('/admin/login')
     }
   }, [isLoading, isAuthenticated, router])
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const token = localStorage.getItem('adminToken')
+        const res = await fetch('/api/admin/summary', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setStats({ users: data.totalUsers, revenue: data.revenue, live: data.liveChats })
+        }
+      } catch (e) { console.error(e) }
+    }
+    if (isAuthenticated) fetchStats()
+  }, [isAuthenticated])
 
   if (isLoading) {
     return (
@@ -44,7 +61,7 @@ export default function AdminDashboardPage() {
               </div>
               <div className="ml-4">
                 <p className="text-gray-400 text-sm">Total Users</p>
-                <p className="text-2xl font-bold text-white">1,234</p>
+                <p className="text-2xl font-bold text-white">{stats.users.toLocaleString('id-ID')}</p>
               </div>
             </div>
           </div>
@@ -56,7 +73,7 @@ export default function AdminDashboardPage() {
               </div>
               <div className="ml-4">
                 <p className="text-gray-400 text-sm">Revenue</p>
-                <p className="text-2xl font-bold text-white">$12,345</p>
+                <p className="text-2xl font-bold text-white">Rp {stats.revenue.toLocaleString('id-ID')}</p>
               </div>
             </div>
           </div>
@@ -68,7 +85,7 @@ export default function AdminDashboardPage() {
               </div>
               <div className="ml-4">
                 <p className="text-gray-400 text-sm">Live Chats</p>
-                <p className="text-2xl font-bold text-white">0</p>
+                <p className="text-2xl font-bold text-white">{stats.live}</p>
               </div>
             </div>
           </div>

@@ -1,162 +1,119 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-import jwt from 'jsonwebtoken'
+import { prisma } from '@/lib/db'
 import { JWT_SECRET } from '@/lib/auth'
-
-const prisma = new PrismaClient()
+import jwt from 'jsonwebtoken'
+import { subDays, startOfMonth, format } from 'date-fns'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
-    // Verify admin token
+    const { searchParams } = new URL(request.url)
+    const range = searchParams.get('range') || '30d' // 7d,30d,365d
+    const days = range === '7d' ? 7 : range === '365d' ? 365 : 30
+
+    // auth
     const authHeader = request.headers.get('authorization')
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-
     const token = authHeader.substring(7)
-    const decoded = jwt.verify(token, JWT_SECRET) as any
-    
-    // Check if user is admin
-    const admin = await prisma.admin.findUnique({
-      where: { id: decoded.adminId }
-    })
+    const decoded: any = jwt.verify(token, JWT_SECRET)
+    const admin = await prisma.admin.findUnique({ where: { id: decoded.adminId } })
+    if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-    if (!admin) {
-      return NextResponse.json({ error: 'Admin not found' }, { status: 404 })
-    }
+    const since = subDays(new Date(), days)
+    const previousSince = subDays(since, days)
 
-    // Get date range from query params
-    const { searchParams } = new URL(request.url)
-    const range = searchParams.get('range') || '30d'
+    const [totalUsers, newUsers, totalOrders, totalRevenueAgg, liveChats, topProductsRaw, recentOrdersRaw, successfulTx] = await Promise.all([
+      prisma.user.count(),
+      prisma.user.count({ where: { createdAt: { gte: since } } }),
+      prisma.transaction.count({ where: { createdAt: { gte: since } } }),
+      prisma.transaction.aggregate({ _sum: { amount: true } }),
+      prisma.chatSession.count({ where: { status: 'active' } }),
+      prisma.transaction.groupBy({
+        by: ['gameId', 'description'],
+        _count: { _all: true },
+        _sum: { amount: true },
+        where: { gameId: { not: null } },
+        orderBy: { _sum: { amount: 'desc' } },
+        take: 5
+      }),
+      prisma.transaction.findMany({
+        where: { gameId: { not: null } },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        include: { user: { select: { username: true } } }
+      }),
+      prisma.transaction.count({ where: { status: { in: ['completed', 'SUCCESS'] } } })
+    ])
 
-    // Calculate date range
-    const endDate = new Date()
-    const startDate = new Date()
-    
-    switch (range) {
-      case '7d':
-        startDate.setDate(endDate.getDate() - 7)
-        break
-      case '30d':
-        startDate.setDate(endDate.getDate() - 30)
-        break
-      case '90d':
-        startDate.setDate(endDate.getDate() - 90)
-        break
-      case '1y':
-        startDate.setFullYear(endDate.getFullYear() - 1)
-        break
-      default:
-        startDate.setDate(endDate.getDate() - 30)
-    }
+    const [prevRevenueAgg, prevOrdersCnt, prevUsersCnt, prevSuccessfulTx] = await Promise.all([
+      prisma.transaction.aggregate({ _sum: { amount: true }, where: { createdAt: { gte: previousSince, lt: since } } }),
+      prisma.transaction.count({ where: { createdAt: { gte: previousSince, lt: since } } }),
+      prisma.user.count({ where: { createdAt: { gte: previousSince, lt: since } } }),
+      prisma.transaction.count({ where: { createdAt: { gte: previousSince, lt: since }, status: { in:['completed','SUCCESS'] } } })
+    ])
 
-    // Get total users
-    const totalUsers = await prisma.user.count()
+    const prevRevenue = Number(prevRevenueAgg._sum.amount || 0)
+    const revenueChange = prevRevenue === 0 ? 0 : Number((((Number(totalRevenueAgg._sum.amount||0) - prevRevenue) / prevRevenue) *100).toFixed(1))
 
-    // Get transactions in date range
-    const transactions = await prisma.transaction.findMany({
-      where: {
-        createdAt: {
-          gte: startDate,
-          lte: endDate
-        },
-        status: 'SUCCESS'
-      },
-      select: {
-        amount: true,
-        createdAt: true,
-        type: true
-      }
-    })
+    const ordersChange = prevOrdersCnt === 0 ? 0 : Number((((totalOrders - prevOrdersCnt)/ prevOrdersCnt)*100).toFixed(1))
+    const usersChange = prevUsersCnt === 0 ? 0 : Number((((newUsers - prevUsersCnt)/ prevUsersCnt)*100).toFixed(1))
+    const prevConv = prevUsersCnt===0?0: (prevSuccessfulTx/ (totalUsers - newUsers + prevUsersCnt))*100
+    const conversionChange = prevConv ===0?0: Number(((Number(successfulTx / totalUsers) * 100 - prevConv)/ prevConv*100).toFixed(1))
 
-    // Calculate overview stats
-    const totalSales = transactions
-      .filter(t => t.amount > 0)
-      .reduce((sum, t) => sum + t.amount, 0)
-    
-    const totalTransactions = transactions.length
-    const averageOrderValue = totalTransactions > 0 ? totalSales / totalTransactions : 0
-
-    // Generate sales trend data
-    const salesTrend = []
-    const days = range === '7d' ? 7 : range === '30d' ? 30 : range === '90d' ? 90 : 365
-    
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date()
-      date.setDate(date.getDate() - i)
-      const dayStart = new Date(date.setHours(0, 0, 0, 0))
-      const dayEnd = new Date(date.setHours(23, 59, 59, 999))
-      
-      const dayTransactions = transactions.filter(t => 
-        t.createdAt >= dayStart && t.createdAt <= dayEnd && t.amount > 0
-      )
-      
-      salesTrend.push({
-        date: dayStart.toISOString().split('T')[0],
-        amount: dayTransactions.reduce((sum, t) => sum + t.amount, 0),
-        transactions: dayTransactions.length
-      })
-    }
-
-    // Mock top products data (since we don't have products table yet)
-    const topProducts = [
-      { name: 'Mobile Legends Diamonds', sales: 45, revenue: 2250000 },
-      { name: 'Free Fire Diamonds', sales: 38, revenue: 1900000 },
-      { name: 'PUBG UC', sales: 32, revenue: 1600000 },
-      { name: 'Genshin Impact Genesis', sales: 28, revenue: 1400000 },
-      { name: 'Valorant Points', sales: 22, revenue: 1100000 }
-    ]
-
-    // Generate user growth data
-    const userGrowth = []
-    for (let i = 3; i >= 0; i--) {
-      const date = new Date()
-      date.setMonth(date.getMonth() - i)
-      const monthStart = new Date(date.getFullYear(), date.getMonth(), 1)
-      const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0)
-      
-      const newUsers = await prisma.user.count({
+    // monthly revenue for last 6 months
+    const now = new Date()
+    const months: { label: string; value: number }[] = []
+    for (let i = 5; i >= 0; i--) {
+      const monthStart = startOfMonth(subDays(now, i * 30))
+      const nextMonth = startOfMonth(subDays(now, (i - 1) * 30))
+      const agg = await prisma.transaction.aggregate({
+        _sum: { amount: true },
         where: {
           createdAt: {
             gte: monthStart,
-            lte: monthEnd
+            lt: nextMonth
           }
         }
       })
-
-      const totalUsersAtTime = await prisma.user.count({
-        where: {
-          createdAt: {
-            lte: monthEnd
-          }
-        }
-      })
-      
-      userGrowth.push({
-        month: date.toLocaleDateString('id-ID', { month: 'short', year: 'numeric' }),
-        newUsers,
-        totalUsers: totalUsersAtTime
-      })
+      months.push({ label: format(monthStart, 'MMM'), value: Number(agg._sum.amount || 0) })
     }
 
-    const analyticsData = {
-      overview: {
-        totalSales,
-        totalUsers,
-        totalTransactions,
-        averageOrderValue
-      },
-      salesTrend,
+    // format top products
+    const topProducts = topProductsRaw.map(tp => ({
+      id: tp.gameId,
+      name: tp.description || tp.gameId,
+      sales: tp._count._all,
+      amount: Number(tp._sum.amount || 0)
+    }))
+
+    // format recent orders
+    const recentOrders = recentOrdersRaw.map(ro => ({
+      id: ro.id,
+      user: ro.user?.username || 'Unknown',
+      product: ro.description || ro.gameId,
+      total: ro.amount,
+      date: ro.createdAt
+    }))
+
+    const conversionRate = totalUsers === 0 ? 0 : Number(((successfulTx / totalUsers) * 100).toFixed(2))
+
+    return NextResponse.json({
+      totalUsers,
+      newUsers,
+      totalOrders,
+      totalRevenue: Number(totalRevenueAgg._sum.amount || 0),
+      liveChats,
+      monthlyRevenue: months,
       topProducts,
-      userGrowth
-    }
-
-    return NextResponse.json(analyticsData)
-
-  } catch (error) {
-    console.error('Error fetching analytics:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+      recentOrders,
+      conversionRate,
+      changes:{revenue:revenueChange,orders:ordersChange,users:usersChange,conversion:conversionChange}
+    })
+  } catch (err) {
+    console.error(err)
+    return NextResponse.json({ error: 'Server error' }, { status: 500 })
   }
 } 
