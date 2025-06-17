@@ -42,7 +42,7 @@ jobs:
           NEXTAUTH_URL: "https://doaibustore.azurewebsites.net"
           NODE_ENV: "production"
         run: |
-          echo "📦 Installing dependencies..."
+          echo "📦 Installing dependencies (including dev)..."
           npm ci
           
           echo "🔧 Generating Prisma client..."
@@ -51,20 +51,15 @@ jobs:
           echo "🏗️ Building Next.js application..."
           npm run build
           
-          # Verify build output
-          ls -la .next || echo ".next folder not created"
+          echo "🗑️ Removing devDependencies..."
+          npm prune --omit=dev  # keep only production deps
           
-          # List build output
-          echo "Build completed. Checking output:"
-          ls -la
+          echo "✅ Build finished"
 
       - name: Zip artifact for deployment
         run: |
-          # Remove node_modules to avoid size issues
-          rm -rf node_modules
-          
-          # Create zip with essential files only
-          zip -r release.zip . -x "*.git*" "node_modules/*" ".env*" "*.log" "coverage/*" ".nyc_output/*"
+          echo "📦 Creating deployment zip (including node_modules prod only)..."
+          zip -r release.zip . -x "*.git*" "*.env*" "*.log" "coverage/*" ".nyc_output/*"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
