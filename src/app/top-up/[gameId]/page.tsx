@@ -217,7 +217,7 @@ export default function GameTopUpPage() {
           {/* Game Info Header */}
           <div className="bg-dark-800/50 backdrop-blur-md rounded-xl sm:rounded-2xl border border-green-500/20 p-4 sm:p-8 mb-4 sm:mb-8">
             <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
-              <div className="relative w-20 h-20 sm:w-24 sm:h-24">
+              <div className="relative w-24 h-24 sm:w-32 sm:h-32">
                 <Image 
                   src={getLogoByGameId(gameId)}
                   alt={game?.name || "Game Logo"}

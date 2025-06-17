@@ -228,7 +228,7 @@ export default function GameBoostPage() {
         {/* Game Info Header */}
         <div className="bg-dark-800/20 backdrop-blur-md rounded-xl sm:rounded-2xl border border-green-500/20 p-4 sm:p-8 mb-4 sm:mb-8">
           <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
-            <div className="relative w-20 h-20 sm:w-24 sm:h-24">
+            <div className="relative w-24 h-24 sm:w-32 sm:h-32">
               <Image 
                 src={getLogoByGameId(gameId)}
                 alt={game?.name || 'Game Logo'}
@@ -254,8 +254,8 @@ export default function GameBoostPage() {
         </div>
 
         {/* Progress Steps */}
-        <div className="mb-8">
-          <div className="flex items-center justify-center space-x-4">
+        <div className="mb-8 overflow-x-auto">
+          <div className="flex items-center justify-center space-x-4 min-w-max px-4">
             {[1, 2, 3].map((stepNum) => (
               <div key={stepNum} className="flex items-center">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all duration-300 ${
@@ -310,7 +310,7 @@ export default function GameBoostPage() {
                         </div>
                       )}
 
-                      <div className="flex items-start justify-between">
+                      <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between">
                         <div className="flex-1">
                           <h3 className="text-xl font-bold text-white mb-2">{service.name}</h3>
                           <p className="text-gray-300 mb-4">{service.description}</p>
@@ -339,7 +339,7 @@ export default function GameBoostPage() {
                           </div>
                         </div>
 
-                        <div className="text-right ml-6">
+                        <div className="md:text-right mt-4 md:mt-0 md:ml-6">
                           <div className="text-3xl font-bold text-green-400 mb-2">
                             {formatCurrency(service.price)}
                           </div>
