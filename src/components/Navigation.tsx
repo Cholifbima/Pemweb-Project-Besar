@@ -12,11 +12,7 @@ import bannerWelcome from '@/assets/banner_welcome.png'
 
 export default function Navigation() {
   const pathname = usePathname()
-
-  // Hide navigation bar on admin routes early to avoid conditional hooks lint errors
-  if (pathname?.startsWith('/admin')) {
-    return null
-  }
+  const isAdminRoute = pathname?.startsWith('/admin')
 
   const { user, setUser, isLoading } = useUser()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -140,6 +136,11 @@ export default function Navigation() {
     { href: '/boost-services', label: 'Joki Game', icon: Trophy },
     { href: '/contact', label: 'Contact', icon: Phone },
   ]
+
+  // Return null for admin routes (after hooks are initialized to satisfy lint rules)
+  if (isAdminRoute) {
+    return null
+  }
 
   return (
     <nav className="bg-dark-800/80 backdrop-blur-md border-b border-dark-700/50 sticky top-0 z-50 transition-all duration-300" style={{ padding: 0 }}>
