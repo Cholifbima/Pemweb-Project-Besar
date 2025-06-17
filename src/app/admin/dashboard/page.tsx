@@ -3,10 +3,11 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAdmin } from '@/contexts/AdminContext'
-import { Shield, Users, MessageSquare, TrendingUp, LogOut } from 'lucide-react'
+import { Shield, Users, MessageSquare, TrendingUp } from 'lucide-react'
+import AdminNavigation from '@/components/AdminNavigation'
 
 export default function AdminDashboardPage() {
-  const { admin, isLoading, isAuthenticated, logout } = useAdmin()
+  const { admin, isLoading, isAuthenticated } = useAdmin()
   const router = useRouter()
 
   useEffect(() => {
@@ -14,17 +15,6 @@ export default function AdminDashboardPage() {
       router.push('/admin/login')
     }
   }, [isLoading, isAuthenticated, router])
-
-  const handleLogout = async () => {
-    try {
-      await logout()
-      router.push('/admin/login')
-    } catch (error) {
-      console.error('Logout error:', error)
-      // Still redirect even if logout API fails
-      router.push('/admin/login')
-    }
-  }
 
   if (isLoading) {
     return (
@@ -40,38 +30,8 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
-      {/* Header */}
-      <header className="bg-black/20 backdrop-blur-md border-b border-blue-500/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <Shield className="w-8 h-8 text-blue-400 mr-3" />
-              <h1 className="text-xl font-bold text-white">Admin Panel</h1>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-sm text-gray-300">Welcome back,</p>
-                <p className="text-white font-medium">{admin.username}</p>
-                <span className="text-xs text-blue-400 capitalize">({admin.role})</span>
-                {admin.isOnline && (
-                  <div className="flex items-center mt-1">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse mr-1"></div>
-                    <span className="text-xs text-green-400">Online</span>
-                  </div>
-                )}
-              </div>
-              <button
-                onClick={handleLogout}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Admin Navigation */}
+      <AdminNavigation />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">

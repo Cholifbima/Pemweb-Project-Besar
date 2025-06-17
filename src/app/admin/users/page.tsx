@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAdmin } from '@/contexts/AdminContext'
+import AdminNavigation from '@/components/AdminNavigation'
 import { 
   Shield, 
   Users, 
@@ -28,16 +29,16 @@ interface User {
   createdAt: string
 }
 
-export default function UserManagementPage() {
+export default function AdminUsersPage() {
   const { admin, isLoading, isAuthenticated } = useAdmin()
   const router = useRouter()
   const [users, setUsers] = useState<User[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [isLoadingUsers, setIsLoadingUsers] = useState(true)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
-  const [showBalanceModal, setShowBalanceModal] = useState(false)
-  const [balanceAmount, setBalanceAmount] = useState('')
-  const [balanceAction, setBalanceAction] = useState<'add' | 'subtract'>('add')
+  const [balanceAmount, setBalanceAmount] = useState<string>('')
+  const [showAddBalanceModal, setShowAddBalanceModal] = useState(false)
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -51,7 +52,19 @@ export default function UserManagementPage() {
     }
   }, [isAuthenticated])
 
+  useEffect(() => {
+    if (users.length > 0) {
+      const filtered = users.filter(user => 
+        user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (user.fullName && user.fullName.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
+      setFilteredUsers(filtered)
+    }
+  }, [searchQuery, users])
+
   const fetchUsers = async () => {
+    setIsLoadingUsers(true)
     try {
       const token = localStorage.getItem('adminToken')
       const response = await fetch('/api/admin/users', {
@@ -63,16 +76,22 @@ export default function UserManagementPage() {
       if (response.ok) {
         const data = await response.json()
         setUsers(data.users)
+        setFilteredUsers(data.users)
+      } else {
+        console.error('Failed to fetch users')
       }
     } catch (error) {
       console.error('Error fetching users:', error)
     } finally {
-      setLoading(false)
+      setIsLoadingUsers(false)
     }
   }
 
-  const handleBalanceUpdate = async () => {
-    if (!selectedUser || !balanceAmount) return
+  const handleAddBalance = async (userId: number) => {
+    if (!balanceAmount || isNaN(Number(balanceAmount))) {
+      alert('Please enter a valid amount')
+      return
+    }
 
     try {
       const token = localStorage.getItem('adminToken')
@@ -83,28 +102,35 @@ export default function UserManagementPage() {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          userId: selectedUser.id,
-          amount: parseFloat(balanceAmount),
-          action: balanceAction
+          userId,
+          amount: Number(balanceAmount)
         })
       })
 
       if (response.ok) {
-        await fetchUsers() // Refresh users
-        setShowBalanceModal(false)
-        setSelectedUser(null)
+        // Update the user in the list
+        const updatedUsers = users.map(user => {
+          if (user.id === userId) {
+            return {
+              ...user,
+              balance: user.balance + Number(balanceAmount)
+            }
+          }
+          return user
+        })
+        setUsers(updatedUsers)
+        setFilteredUsers(updatedUsers)
+        setShowAddBalanceModal(false)
         setBalanceAmount('')
+        setSelectedUser(null)
+      } else {
+        alert('Failed to add balance')
       }
     } catch (error) {
-      console.error('Error updating balance:', error)
+      console.error('Error adding balance:', error)
+      alert('An error occurred')
     }
   }
-
-  const filteredUsers = users.filter(user =>
-    user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (user.fullName && user.fullName.toLowerCase().includes(searchTerm.toLowerCase()))
-  )
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -114,7 +140,18 @@ export default function UserManagementPage() {
     }).format(amount)
   }
 
-  if (isLoading || loading) {
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return new Intl.DateTimeFormat('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date)
+  }
+
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
         <div className="text-white text-xl">Loading...</div>
@@ -128,174 +165,171 @@ export default function UserManagementPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
-      {/* Header */}
-      <header className="bg-black/20 backdrop-blur-md border-b border-blue-500/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <button
-                onClick={() => router.back()}
-                className="mr-4 p-2 hover:bg-blue-500/20 rounded-lg transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5 text-blue-400" />
-              </button>
-              <Shield className="w-8 h-8 text-blue-400 mr-3" />
-              <h1 className="text-xl font-bold text-white">User Management</h1>
-            </div>
-            
-            <button
-              onClick={fetchUsers}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center"
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
-            </button>
-          </div>
-        </div>
-      </header>
+      {/* Admin Navigation */}
+      <AdminNavigation />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search */}
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-white">User Management</h1>
+            <p className="text-gray-400">Manage and view all registered users</p>
+          </div>
+          <button
+            onClick={fetchUsers}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
+          </button>
+        </div>
+
+        {/* Search Bar */}
         <div className="mb-6">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Cari username, email, atau nama..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-black/20 border border-blue-500/20 rounded-lg focus:ring-2 focus:ring-blue-500 text-white placeholder-gray-400"
+              placeholder="Search users by name, email, or username..."
+              className="w-full bg-black/20 backdrop-blur-md border border-blue-500/20 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           </div>
         </div>
 
         {/* Users Table */}
         <div className="bg-black/20 backdrop-blur-md rounded-2xl border border-blue-500/20 overflow-hidden">
-          <div className="p-6 border-b border-blue-500/20">
-            <h2 className="text-xl font-bold text-white flex items-center">
-              <Users className="w-6 h-6 mr-2" />
-              Total Users: {filteredUsers.length}
-            </h2>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-black/30">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">User</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Contact</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Balance</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Total Spent</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Joined</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-blue-500/10">
-                {filteredUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-blue-500/5">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center mr-3">
-                          <User className="w-5 h-5 text-blue-400" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-white">{user.username}</div>
-                          <div className="text-sm text-gray-400">{user.fullName || 'No name'}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-300">{user.email}</div>
-                      <div className="text-sm text-gray-400">{user.phoneNumber || 'No phone'}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-green-400">{formatCurrency(user.balance)}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-300">{formatCurrency(user.totalSpent)}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-300">
-                        {new Date(user.createdAt).toLocaleDateString('id-ID')}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => {
-                            setSelectedUser(user)
-                            setBalanceAction('add')
-                            setShowBalanceModal(true)
-                          }}
-                          className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs flex items-center"
-                        >
-                          <Plus className="w-3 h-3 mr-1" />
-                          Add
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedUser(user)
-                            setBalanceAction('subtract')
-                            setShowBalanceModal(true)
-                          }}
-                          className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs flex items-center"
-                        >
-                          <Minus className="w-3 h-3 mr-1" />
-                          Subtract
-                        </button>
-                      </div>
-                    </td>
+          {isLoadingUsers ? (
+            <div className="flex items-center justify-center p-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              <span className="ml-3 text-white">Loading users...</span>
+            </div>
+          ) : filteredUsers.length === 0 ? (
+            <div className="text-center p-8">
+              <Users className="w-12 h-12 text-gray-500 mx-auto mb-3" />
+              <p className="text-gray-400">No users found</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-blue-900/30">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">User</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Email</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Balance</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Joined</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-blue-500/10">
+                  {filteredUsers.map((user) => (
+                    <tr key={user.id} className="hover:bg-blue-900/10">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10 bg-blue-500/20 rounded-full flex items-center justify-center">
+                            <User className="h-5 w-5 text-blue-400" />
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-white">{user.username}</div>
+                            <div className="text-sm text-gray-400">{user.fullName || 'No name'}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-300">{user.email}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-green-400">{formatCurrency(user.balance)}</div>
+                        <div className="text-xs text-gray-400">Spent: {formatCurrency(user.totalSpent || 0)}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                        {formatDate(user.createdAt)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button
+                          onClick={() => {
+                            setSelectedUser(user)
+                            setShowAddBalanceModal(true)
+                          }}
+                          className="text-blue-400 hover:text-blue-300 mr-3"
+                        >
+                          <Wallet className="h-5 w-5" />
+                        </button>
+                        <button className="text-yellow-400 hover:text-yellow-300 mr-3">
+                          <Edit3 className="h-5 w-5" />
+                        </button>
+                        <button className="text-red-400 hover:text-red-300">
+                          <Trash2 className="h-5 w-5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
+      </main>
 
-        {/* Balance Modal */}
-        {showBalanceModal && selectedUser && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-slate-800 rounded-2xl p-6 w-full max-w-md mx-4">
-              <h3 className="text-xl font-bold text-white mb-4">
-                {balanceAction === 'add' ? 'Add Balance' : 'Subtract Balance'}
-              </h3>
-              
-              <div className="mb-4">
-                <p className="text-gray-300 mb-2">User: {selectedUser.username}</p>
-                <p className="text-gray-300 mb-4">Current Balance: {formatCurrency(selectedUser.balance)}</p>
-                
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Amount (IDR)
-                </label>
+      {/* Add Balance Modal */}
+      {showAddBalanceModal && selectedUser && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-dark-800 rounded-2xl border border-blue-500/20 p-6 w-full max-w-md">
+            <h3 className="text-xl font-bold text-white mb-4">Add Balance</h3>
+            <p className="text-gray-400 mb-4">
+              Adding balance to user: <span className="text-white font-medium">{selectedUser.username}</span>
+            </p>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Current Balance
+              </label>
+              <div className="text-xl font-bold text-green-400">
+                {formatCurrency(selectedUser.balance)}
+              </div>
+            </div>
+            
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Amount to Add
+              </label>
+              <div className="relative">
                 <input
                   type="number"
                   value={balanceAmount}
                   onChange={(e) => setBalanceAmount(e.target.value)}
                   placeholder="Enter amount"
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+                  className="w-full bg-dark-700 border border-dark-600 rounded-lg pl-10 pr-4 py-3 text-white placeholder-dark-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-              </div>
-
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => setShowBalanceModal(false)}
-                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleBalanceUpdate}
-                  className={`flex-1 ${
-                    balanceAction === 'add' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
-                  } text-white py-2 rounded-lg`}
-                >
-                  {balanceAction === 'add' ? 'Add' : 'Subtract'}
-                </button>
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                  Rp
+                </div>
               </div>
             </div>
+            
+            <div className="flex items-center justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowAddBalanceModal(false)
+                  setSelectedUser(null)
+                  setBalanceAmount('')
+                }}
+                className="px-4 py-2 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleAddBalance(selectedUser.id)}
+                className="px-4 py-2 bg-blue-600 rounded-lg text-white hover:bg-blue-700 transition-colors flex items-center"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Balance
+              </button>
+            </div>
           </div>
-        )}
-      </main>
+        </div>
+      )}
     </div>
   )
 } 
