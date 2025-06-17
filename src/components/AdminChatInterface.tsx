@@ -13,7 +13,8 @@ import {
   Search,
   AlertCircle,
   CheckCircle2,
-  Image
+  Image,
+  Paperclip
 } from 'lucide-react'
 import { HubConnectionBuilder, HubConnection, LogLevel } from '@microsoft/signalr'
 
@@ -58,6 +59,7 @@ export default function AdminChatInterface() {
   const [connection, setConnection] = useState<HubConnection | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [isUploading, setIsUploading] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -428,6 +430,18 @@ export default function AdminChatInterface() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
 
+  const previewText = (text: string) => {
+    if (!text) return ''
+    const words = text.split(/\s+/)
+    if (words.length > 20) {
+      return words.slice(0, 20).join(' ') + '…'
+    }
+    if (text.length > 30) {
+      return text.slice(0, 30) + '…'
+    }
+    return text
+  }
+
   const filteredSessions = sessions.filter(session =>
     session.user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (session.user.fullName && session.user.fullName.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -435,6 +449,63 @@ export default function AdminChatInterface() {
 
   const activeSessions = filteredSessions.filter(s => s.status === 'active')
   const waitingSessions = filteredSessions.filter(s => s.status === 'waiting')
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file || !selectedSession) return
+
+    // Size check 10MB
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File size must be less than 10MB')
+      return
+    }
+
+    setIsUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('sessionId', selectedSession.id.toString())
+
+      const token = localStorage.getItem('adminToken')
+      const response = await fetch('/api/admin/chat/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        const msg: ChatMessage = {
+          id: data.message.id,
+          content: data.message.content,
+          isFromUser: false,
+          adminId: admin?.id,
+          messageType: data.message.messageType,
+          fileUrl: data.message.fileUrl,
+          fileName: data.message.fileName,
+          fileSize: data.message.fileSize,
+          createdAt: data.message.createdAt,
+          isRead: false
+        }
+        setSelectedSession(prev => prev ? { ...prev, messages: [...prev.messages, msg] } : prev)
+        // SignalR send to customer
+        if (connection && isConnected) {
+          connection.invoke('SendMessageToCustomer', selectedSession.userId.toString(), data.message).catch(() => {})
+        }
+      } else {
+        const err = await response.json()
+        alert(`Upload failed: ${err.error || 'Unknown'}`)
+      }
+    } catch (err) {
+      console.error('Upload error:', err)
+      alert('Failed to upload file.')
+    } finally {
+      setIsUploading(false)
+      event.target.value = ''
+    }
+  }
 
   if (!isAuthenticated || !admin) {
     return (
@@ -552,7 +623,7 @@ export default function AdminChatInterface() {
                     )}
                   </div>
                   {session.messages.length > 0 && (
-                    <p className="text-gray-300 text-xs mt-1 truncate">
+                    <p className="text-gray-300 text-xs mt-1 truncate w-full block min-w-0">
                       {(() => {
                         const lastMessage = session.messages[session.messages.length - 1]
                         if (lastMessage.messageType === 'image') {
@@ -560,7 +631,7 @@ export default function AdminChatInterface() {
                         } else if (lastMessage.messageType === 'file') {
                           return `📎 ${lastMessage.fileName || 'File'}`
                         }
-                        return lastMessage.content
+                        return previewText(lastMessage.content)
                       })()}
                     </p>
                   )}
@@ -603,7 +674,7 @@ export default function AdminChatInterface() {
               </div>
               
               <div className="flex items-center space-x-2">
-                <span className={`px-2 py-1 rounded-full text-xs ${
+                <span className={`px-2 py-1 rounded-full text-xs flex-shrink-0 ${
                   selectedSession.status === 'active' ? 'bg-green-500/20 text-green-400' :
                   selectedSession.status === 'waiting' ? 'bg-yellow-500/20 text-yellow-400' :
                   'bg-gray-500/20 text-gray-400'
@@ -635,9 +706,10 @@ export default function AdminChatInterface() {
                         ? 'bg-slate-700 text-gray-100'
                         : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
                     }`}
+                    style={{ wordBreak: 'break-word' }}
                   >
                     {message.messageType === 'text' ? (
-                      <p className="text-sm">{message.content}</p>
+                      <p className="text-sm break-words">{message.content}</p>
                     ) : message.messageType === 'image' ? (
                       // Image message
                       <div className="space-y-2">
@@ -716,27 +788,34 @@ export default function AdminChatInterface() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Message Input */}
-            <div className="bg-slate-800 p-4 border-t border-slate-700">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="text"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                  placeholder={isLoading ? 'Sending...' : 'Type your message...'}
-                  disabled={isLoading || selectedSession.status !== 'active'}
-                  className="flex-1 bg-slate-700 border border-slate-600 rounded-xl px-4 py-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50"
-                />
-                
-                <button
-                  onClick={sendMessage}
-                  disabled={!newMessage.trim() || isLoading || selectedSession.status !== 'active'}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-600 disabled:to-gray-600 text-white p-2 rounded-xl transition-all duration-200 disabled:cursor-not-allowed"
-                >
-                  <Send className="w-5 h-5" />
-                </button>
-              </div>
+            {/* Input & Send */}
+            <div className="flex items-center p-4 border-t border-slate-700">
+              <input
+                type="file"
+                id="admin-file-input"
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+              <label htmlFor="admin-file-input" className="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 cursor-pointer mr-2" title="Attach file">
+                <Paperclip className="w-5 h-5 text-white" />
+              </label>
+
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                className="flex-1 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500"
+                placeholder="Type a message..."
+                onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+                disabled={isUploading}
+              />
+              <button
+                onClick={sendMessage}
+                disabled={isLoading || isUploading || !newMessage.trim()}
+                className="ml-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg disabled:opacity-50"
+              >
+                Send
+              </button>
             </div>
           </>
         ) : (

@@ -209,8 +209,8 @@ export default function LiveChatCustomer({ onClose, onBack, isEmbedded = false }
   useEffect(() => {
     if (isAuthenticated) {
       fetchAdmins()
-      // Refresh admin list every 30 seconds
-      const interval = setInterval(fetchAdmins, 30000)
+      // Refresh admin list every 5 seconds for near realtime updates
+      const interval = setInterval(fetchAdmins, 5000)
       return () => clearInterval(interval)
     }
   }, [isAuthenticated])
@@ -422,6 +422,9 @@ export default function LiveChatCustomer({ onClose, onBack, isEmbedded = false }
           [admin.id]: 0
         }))
         
+        // Mark messages as read on the server as well
+        markMessagesAsRead(data.session.id)
+        
         // Join chat room in SignalR
         if (connection && isConnected) {
           connection.invoke('JoinChatRoom', data.session.id.toString())
@@ -622,6 +625,17 @@ export default function LiveChatCustomer({ onClose, onBack, isEmbedded = false }
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
 
+  const previewText = (text: string) => {
+    const words = text.split(/\s+/)
+    if (words.length > 20) {
+      return words.slice(0, 20).join(' ') + '…'
+    }
+    if (text.length > 30) {
+      return text.slice(0, 30) + '…'
+    }
+    return text
+  }
+
   // Only show if user is authenticated
   if (!isAuthenticated) return null
 
@@ -703,55 +717,56 @@ export default function LiveChatCustomer({ onClose, onBack, isEmbedded = false }
                         <div
                           key={admin.id}
                           onClick={() => !isLoading && startChatWithAdmin(admin)}
-                          className={`bg-slate-800 hover:bg-slate-700 rounded-xl p-4 cursor-pointer transition-all duration-200 border border-gray-600/30 hover:border-purple-500/50 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          className={`bg-slate-800 hover:bg-slate-700 rounded-xl p-4 cursor-pointer transition-all duration-200 border border-gray-600/30 hover:border-purple-500/50 relative ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
-                                                      <div className="flex items-center justify-between">
-                              <div className="flex items-center flex-1">
-                                <div className="relative">
-                                  <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mr-3">
-                                    <span className="text-white font-semibold text-sm">
-                                      {admin.username.charAt(0).toUpperCase()}
-                                    </span>
-                                  </div>
-                                  {unreadCounts[admin.id] > 0 && (
-                                    <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                                      {unreadCounts[admin.id] > 9 ? '9+' : unreadCounts[admin.id]}
-                                    </div>
-                                  )}
+                          <div className="flex items-center justify-between overflow-hidden">
+                            <div className="flex items-center flex-1">
+                              <div className="relative">
+                                <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mr-3">
+                                  <span className="text-white font-semibold text-sm">
+                                    {admin.username.charAt(0).toUpperCase()}
+                                  </span>
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center">
-                                    <h4 className="text-white font-medium">{admin.username}</h4>
-                                    {unreadCounts[admin.id] > 0 && (
-                                      <div className="ml-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                                    )}
+                                {unreadCounts[admin.id] > 0 && (
+                                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                                    {unreadCounts[admin.id] > 9 ? '9+' : unreadCounts[admin.id]}
                                   </div>
-                                  <p className="text-xs text-gray-400 capitalize">{admin.role}</p>
-                                  {recentChats[admin.id] ? (
-                                    <div className="mt-1">
-                                      <p className={`text-xs truncate ${unreadCounts[admin.id] > 0 ? 'text-white font-medium' : 'text-gray-500'}`}>
-                                        {recentChats[admin.id].isFromUser ? 'Anda: ' : `${admin.username}: `}
-                                        {recentChats[admin.id].messageType === 'image' ? '🖼️ Image' :
-                                         recentChats[admin.id].messageType === 'file' ? '📎 File' :
-                                         recentChats[admin.id].content}
-                                      </p>
-                                      <p className="text-xs text-gray-600 mt-0.5">
-                                        {formatTime(recentChats[admin.id].createdAt)}
-                                      </p>
-                                    </div>
-                                  ) : (
-                                    <p className="text-xs text-gray-500 mt-1">Belum ada pesan</p>
-                                  )}
-                                </div>
+                                )}
                               </div>
-                              
-                              <div className="flex items-center ml-2">
-                                <Circle className={`w-3 h-3 fill-current ${getStatusColor(admin.isOnline)}`} />
-                                <span className={`text-xs ml-1 ${getStatusColor(admin.isOnline)}`}>
-                                  {admin.isOnline ? 'Online' : 'Offline'}
-                                </span>
+                              <div className="flex-1 min-w-0 overflow-hidden">
+                                <div className="flex items-center">
+                                  <h4 className="text-white font-medium">{admin.username}</h4>
+                                  {unreadCounts[admin.id] > 0 && (
+                                    <div className="ml-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                                  )}
+                                </div>
+                                <p className="text-xs text-gray-400 capitalize">{admin.role}</p>
+                                {recentChats[admin.id] ? (
+                                  <div className="mt-1">
+                                    <p
+                                      className={`text-xs truncate w-full block min-w-0 ${unreadCounts[admin.id] > 0 ? 'text-white font-medium' : 'text-gray-500'}`}
+                                      style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                                    >
+                                      {recentChats[admin.id].isFromUser ? 'Anda: ' : `${admin.username}: `}
+                                      {recentChats[admin.id].messageType === 'image' ? '🖼️ Image' :
+                                       recentChats[admin.id].messageType === 'file' ? '📎 File' :
+                                       previewText(recentChats[admin.id].content)}
+                                    </p>
+                                    <p className="text-xs text-gray-600 mt-0.5">
+                                      {formatTime(recentChats[admin.id].createdAt)}
+                                    </p>
+                                  </div>
+                                ) : (
+                                  <p className="text-xs text-gray-500 mt-1">Belum ada pesan</p>
+                                )}
                               </div>
                             </div>
+                            
+                            <div className="flex items-center whitespace-nowrap absolute right-4 top-3">
+                              <Circle className={`w-3 h-3 fill-current ${getStatusColor(admin.isOnline)}`} />
+                              <span className={`text-xs ml-1 ${getStatusColor(admin.isOnline)}`}>{getStatusText(admin)}</span>
+                            </div>
+                          </div>
                           
                           {!admin.isOnline && (
                             <div className="mt-2 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
@@ -780,9 +795,10 @@ export default function LiveChatCustomer({ onClose, onBack, isEmbedded = false }
                                 ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
                                 : 'bg-slate-700 text-gray-100'
                             }`}
+                            style={{ wordBreak: 'break-word' }}
                           >
                             {message.messageType === 'text' ? (
-                              <p className="text-sm">{message.content}</p>
+                              <p className="text-sm break-words">{message.content}</p>
                             ) : message.messageType === 'image' ? (
                               // Image message
                               <div className="space-y-2">

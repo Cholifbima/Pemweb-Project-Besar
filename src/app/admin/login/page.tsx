@@ -142,11 +142,9 @@ export default function AdminLoginPage() {
 
         {/* Demo Accounts Info */}
         <div className="mt-6 bg-black/10 backdrop-blur-md rounded-lg border border-gray-700/50 p-4">
-          <h3 className="text-white font-medium mb-2">Demo Admin Accounts:</h3>
+          <h3 className="text-white font-medium mb-2"></h3>
           <div className="space-y-1 text-sm text-gray-300">
-            <p>• Cholif / Cholif123 (Super Admin)</p>
-            <p>• Havizhan / Havizhan123 (Admin)</p>
-            <p>• Fathan / Fathan123 (Admin)</p>
+          
           </div>
         </div>
       </div>

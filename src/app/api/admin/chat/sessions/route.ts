@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
             id: true,
             content: true,
             isFromUser: true,
+            isRead: true,
             messageType: true,
             fileUrl: true,
             fileName: true,
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
     // Format the response
     const formattedSessions = sessions.map(session => {
       // Count unread messages from customer
-      const unreadCount = session.messages.filter(msg => msg.isFromUser && !msg.adminId).length
+      const unreadCount = session.messages.filter(msg => msg.isFromUser && !msg.isRead).length
       
       return {
         id: session.id,
@@ -84,7 +85,7 @@ export async function GET(request: NextRequest) {
           fileSize: message.fileSize,
           createdAt: message.createdAt.toISOString(),
           adminId: message.adminId,
-          isRead: false // Default for now
+          isRead: message.isRead
         }))
       }
     })
