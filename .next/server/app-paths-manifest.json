@@ -1,10 +1,8 @@
 {
-  "/page": "app/page.js",
   "/api/chat/admins/route": "app/api/chat/admins/route.js",
-  "/boost-services/[gameId]/page": "app/boost-services/[gameId]/page.js",
-  "/api/chat/recent/[adminId]/route": "app/api/chat/recent/[adminId]/route.js",
+  "/page": "app/page.js",
   "/api/auth/me/route": "app/api/auth/me/route.js",
-  "/_not-found/page": "app/_not-found/page.js",
-  "/top-up/page": "app/top-up/page.js",
-  "/top-up/[gameId]/page": "app/top-up/[gameId]/page.js"
+  "/api/auth/logout/route": "app/api/auth/logout/route.js",
+  "/api/chat/recent/[adminId]/route": "app/api/chat/recent/[adminId]/route.js",
+  "/admin/login/page": "app/admin/login/page.js"
 }
