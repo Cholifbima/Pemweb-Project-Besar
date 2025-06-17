@@ -3,6 +3,7 @@ import { AzureKeyCredential } from '@azure/core-auth'
 import { DocumentAnalysisClient } from '@azure/ai-form-recognizer'
 import { BlobServiceClient } from '@azure/storage-blob'
 import { azureConfig, isAzureConfigured } from './azure-config'
+import { v4 as uuidv4 } from 'uuid'
 
 // Initialize Azure OpenAI Client using standard OpenAI SDK with error handling
 let openaiClient: OpenAI | null = null
@@ -244,46 +245,47 @@ export async function analyzeDocument(fileBuffer: ArrayBuffer, fileName: string)
 }
 
 // Upload file to Azure Blob Storage
-export async function uploadChatFile(file: File, userId: string): Promise<{success: boolean, url?: string, error?: string}> {
+export async function uploadChatFile(
+  file: File,
+  userId: string
+): Promise<{ success: boolean; url?: string; error?: string }> {
   try {
-    // First try local storage as fallback
+    /* ─── 1. Coba upload ke Azure Blob jika client tersedia ─── */
+    if (blobServiceClient) {
+      const containerClient = blobServiceClient.getContainerClient('chat-files')
+      await containerClient.createIfNotExists({ access: 'blob' })
+
+      const sanitized = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
+      const blobName = `chat/${userId}/${uuidv4()}-${sanitized}`
+      const blockBlob = containerClient.getBlockBlobClient(blobName)
+
+      const buffer = Buffer.from(await file.arrayBuffer())
+      await blockBlob.uploadData(buffer, {
+        blobHTTPHeaders: { blobContentType: file.type }
+      })
+
+      const url = `/api/uploads/chat/${userId}/${blobName.split('/').pop()}`
+      console.log('☁️ File uploaded to Azure Blob:', url)
+      return { success: true, url }
+    }
+
+    /* ─── 2. Fallback dev: simpan ke disk lokal ─── */
     const fs = await import('fs')
     const path = await import('path')
-    
     const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'chat', userId)
-    
-    // Ensure directory exists
-    try {
-      await fs.promises.mkdir(uploadDir, { recursive: true })
-    } catch (error) {
-      // Directory might already exist
-    }
-    
+    await fs.promises.mkdir(uploadDir, { recursive: true })
+
     const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
     const filePath = path.join(uploadDir, fileName)
-    
-    // Save file to local storage
-    const arrayBuffer = await file.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-    
-    await fs.promises.writeFile(filePath, buffer)
-    
-    // Return local URL
+
+    await fs.promises.writeFile(filePath, Buffer.from(await file.arrayBuffer()))
     const localUrl = `/uploads/chat/${userId}/${fileName}`
-    
-    console.log('✅ File uploaded locally:', localUrl)
-    
-    return {
-      success: true,
-      url: localUrl
-    }
+    console.log('💾 File uploaded locally:', localUrl)
+    return { success: true, url: localUrl }
 
   } catch (error: any) {
     console.error('File Upload Error:', error)
-    return {
-      success: false,
-      error: error.message
-    }
+    return { success: false, error: error.message }
   }
 }
 
