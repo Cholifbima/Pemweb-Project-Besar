@@ -11,18 +11,19 @@ import Image from 'next/image'
 import bannerWelcome from '@/assets/banner_welcome.png'
 
 export default function Navigation() {
+  const pathname = usePathname()
+
+  // Hide navigation bar on admin routes early to avoid conditional hooks lint errors
+  if (pathname?.startsWith('/admin')) {
+    return null
+  }
+
   const { user, setUser, isLoading } = useUser()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [showSearchResults, setShowSearchResults] = useState(false)
   const router = useRouter()
-  const pathname = usePathname()
   const searchInputRef = useRef<HTMLInputElement>(null)
-
-  // Hide navigation bar on admin routes
-  if (pathname?.startsWith('/admin')) {
-    return null
-  }
 
   // Prevent scrolling when mobile menu is open and dispatch custom event
   useEffect(() => {
