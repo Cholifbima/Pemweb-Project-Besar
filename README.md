@@ -1,12 +1,12 @@
 ## Submission Requirements:
 1. Link YouTube: [Demo Aplikasi](https://youtu.be/hnL47_qDj7w)
-2. Dokumen PDF/DOC terkait detail project (format bebas)
+2. Dokumen PDF/DOC terkait detail project (format FP_PWB_L0123040_L0123053_L0123063.pdf)
 3. Source code (repository ini)
 
 Kelompok 2:
-CHOLIF BIMA ARDIANSYAH L0123040
-FATHAN DHIYA MAHFUZHL0123053
-HAVIZHAN RHAIYA ARDHANA L0123063
+1. CHOLIF BIMA ARDIANSYAH L0123040
+2. FATHAN DHIYA MAHFUZHL0123053
+3. HAVIZHAN RHAIYA ARDHANA L0123063
 
 # DoaIbu Store - Gaming Top Up & Boost Services Platform
 
